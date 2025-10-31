@@ -1,13 +1,14 @@
 #ifndef __GPIOS_H
 #define __GPIOS_H
 
-static constexpr uint8_t GPIO_MOTOR_R_EN = 3;
-static constexpr uint8_t GPIO_MOTOR_R_IN1 = 5;
-static constexpr uint8_t GPIO_MOTOR_R_IN2 = 6;
+namespace gpios {
+  static constexpr uint8_t kMotorRightEn = 25;
+  static constexpr uint8_t kMotorRightIn1 = 26;
+  static constexpr uint8_t kMotorRightIn2 = 27;
 
-static constexpr uint8_t GPIO_MOTOR_L_EN  = 7;
-static constexpr uint8_t GPIO_MOTOR_L_IN1 = 8;
-static constexpr uint8_t GPIO_MOTOR_L_IN2 = 9;
-//TODO CHANGE TO REAL PIN NUMBERS
+  static constexpr uint8_t kMotorLeftEn  = 4;
+  static constexpr uint8_t kMotorLeftIn1 = 16;
+  static constexpr uint8_t kMotorLeftIn2 = 17;
+}
 
 #endif // __GPIOS_H

@@ -1,2 +1,2 @@
 # SumoBot
-A simple mot
+A simple remote controller sumobot

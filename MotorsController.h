@@ -1,38 +1,37 @@
 #ifndef __MOTORS_CONTROLLER_H
 #define __MOTORS_CONTROLLER_H
 
+#include "HBridgeMotor.h"
 #include <stdint.h>
-#include <cmath>
-#include <algorithm>
-#include <L298NX2.h>
+#include <string>
 
 
 class MotorsController {
 public:
-    MotorsController(uint8_t en_r, uint8_t in1_r, uint8_t in2_r, 
-                    uint8_t en_l, uint8_t in1_l, uint8_t in2_l);
-    void updateMotorsFromInput(int16_t x, int16_t y);
-    void run();
+    MotorsController(
+        uint8_t enR, 
+        uint8_t in1R, 
+        uint8_t in2R, 
+        uint8_t enL, 
+        uint8_t in1L, 
+        uint8_t in2L
+    );
+    void init();
+    void updateSpeed(uint8_t speedR, uint8_t speedL);
+    void updateDirection(HBridgeMotor::Direction directionR, HBridgeMotor::Direction directionL);
+    uint8_t getMaxSpeed();
 
 
 private:
-    struct MotorState {
-        L298N::Direction direction;
-        uint32_t delayMs;
-        uint8_t speed;
-    };
+    //Constants//
+    static const std::string kTag;
+    static const uint32_t kDelayMs;
+    static const uint8_t kMaxMotorSpeed;
+    static const uint8_t kMinMotorSpeed;
 
     //Variables//
-    struct {
-        MotorState motorRight;
-        MotorState motorLeft;
-    } state;
-    L298NX2 motors;
-
-    //Methods//
-    L298N::Direction speedToDirection(int8_t speed);
-    bool inputToSpeed(int16_t x, int16_t y, int8_t& motorRight, int8_t& motorLeft);
-    void inputTranslate(int16_t x, int16_t y);
+    HBridgeMotor motorRight;
+    HBridgeMotor motorLeft;
 };
 
 #endif // __MOTORS_CONTROLLER_H

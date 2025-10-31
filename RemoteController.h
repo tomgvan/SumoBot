@@ -2,6 +2,7 @@
 #define __REMOTE_CONTROLLER_H
 
 #include <stdint.h>
+#include <string>
 #include <Bluepad32.h>
 
 
@@ -15,10 +16,20 @@ struct RemoteControllerData {
 class RemoteController {
 public:
   RemoteController();
+  ~RemoteController();
+  void init();
   bool run();
   RemoteControllerData getData();
+  double getJoystickMax();
+  int16_t getJoystickDeadZone() const;
+  
 
 private:
+  //Constants//
+  static const std::string kTag;
+  static const int16_t kJoystickDeadzone;
+  static const double kMaxJoystickVal;
+
   //Variables//
   ControllerPtr controller;
 

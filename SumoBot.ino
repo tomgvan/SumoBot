@@ -1,37 +1,43 @@
 #include "Gpios.h"
 #include "MotorsController.h"
 #include "RemoteController.h"
+#include "DriveLogic.h"
 
-
-MotorsController motorsController(
-  GPIO_MOTOR_R_EN, 
-  GPIO_MOTOR_R_IN1, 
-  GPIO_MOTOR_R_IN2, 
-  GPIO_MOTOR_L_EN, 
-  GPIO_MOTOR_L_IN1, 
-  GPIO_MOTOR_L_IN2
-);
 
 RemoteController remoteController;
+
+MotorsController motorsController(
+  gpios::kMotorRightEn, 
+  gpios::kMotorRightIn1, 
+  gpios::kMotorRightIn2, 
+  gpios::kMotorLeftEn, 
+  gpios::kMotorLeftIn1, 
+  gpios::kMotorLeftIn2
+);
+
+DriveLogic driveLogic(
+  remoteController.getJoystickMax(),
+  remoteController.getJoystickDeadZone(),
+  motorsController.getMaxSpeed()
+);
 
 
 void setup() {
   Serial.begin(115200);
+
+  motorsController.init();
+  remoteController.init();
 }
 
 
 void loop() {
-  bool updated = remoteController.run();
+  bool updated {remoteController.run()};
 
   if(updated) {
-    RemoteControllerData data = remoteController.getData();
+    RemoteControllerData data {remoteController.getData()};
     if(!data.error)
-      motorsController.updateMotorsFromInput(data.axisX, data.axisY);
+      updateMotors(data);
   }
-
-  motorsController.run();
-
-
 
     // The main loop must have some kind of "yield to lower priority task" event.
     // Otherwise, the watchdog will get triggered.
@@ -41,4 +47,26 @@ void loop() {
 
     //     vTaskDelay(1);
     // delay(150);
+}
+
+
+void updateMotors(RemoteControllerData data) {
+  uint8_t speedR{};
+  uint8_t speedL{};
+  HBridgeMotor::Direction directionR{};
+  HBridgeMotor::Direction directionL{};
+
+  bool res = driveLogic.handleJoystickInput(
+    data.axisX, 
+    data.axisY, 
+    speedR, 
+    speedL, 
+    directionR, 
+    directionL
+  );
+
+  if(res) {
+    motorsController.updateDirection(directionR, directionL);
+    motorsController.updateSpeed(speedR, speedL);
+  }
 }
