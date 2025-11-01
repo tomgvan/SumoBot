@@ -5,7 +5,7 @@
 
 // Static Constants Initialization
 const std::string RemoteController::kTag = "Remote Controller";
-const int16_t RemoteController::kJoystickDeadzone = 30;
+const unsigned int RemoteController::kJoystickDeadzone = 30;
 const double RemoteController::kMaxJoystickVal = 512.0;
 
 
@@ -49,7 +49,7 @@ double RemoteController::getJoystickMax() {
 
 //Returns the joystick deadzone
 //If the axises magnitude is below the deadzone the user might want to regard it as 0
-int16_t RemoteController::getJoystickDeadZone() const {
+int RemoteController::getJoystickDeadZone() const {
   return kJoystickDeadzone;
 }
 
@@ -75,7 +75,7 @@ RemoteControllerData RemoteController::getData() {
   if(!isConnected(controller))
     return RemoteControllerData{true, 0, 0};
   
-  Serial.printf("%s - Returning joystick data. X: %d | Y: %d\n", kTag, controller->axisRX(), controller->axisRY());
+  Serial.printf("%s - Returning joystick data. X: %d | Y: %d\n", kTag.c_str(), controller->axisRX(), controller->axisRY());
   return RemoteControllerData{false, controller->axisRX(), controller->axisRY()};
 }
 
@@ -88,14 +88,14 @@ bool RemoteController::isConnected(ControllerPtr ctl) {
 
 //A callback which is called when a remote controller is connected
 void RemoteController::onConnectedController(ControllerPtr ctl) {
-  Serial.printf("%s - Callback: Controller connected\n", kTag);
+  Serial.printf("%s - Callback: Controller connected\n", kTag.c_str());
 
   if(controller == nullptr) {
-    Serial.printf("%s - Callback: Added controller\n", kTag);
+    Serial.printf("%s - Callback: Added controller\n", kTag.c_str());
     controller = ctl;
   }
   else {
-    Serial.printf("%s - Callback: There is already an active controller connected!\n", kTag);
+    Serial.printf("%s - Callback: There is already an active controller connected!\n", kTag.c_str());
     if(ctl != nullptr)
       ctl->disconnect();
   }
@@ -104,14 +104,14 @@ void RemoteController::onConnectedController(ControllerPtr ctl) {
 
 //A callback which is called when a remote controller is disconnected
 void RemoteController::onDisconnectedController(ControllerPtr ctl) {
-  Serial.printf("%s - Callback: Controller disconnected\n", kTag);
+  Serial.printf("%s - Callback: Controller disconnected\n", kTag.c_str());
 
   if(controller == ctl) {
-    Serial.printf("%s - Callback: Removed active controller\n", kTag);
+    Serial.printf("%s - Callback: Removed active controller\n", kTag.c_str());
     controller = nullptr;
   }
   else {
-    Serial.printf("%s - Callback: No active controller found!\n", kTag);
+    Serial.printf("%s - Callback: No active controller found!\n", kTag.c_str());
   }
 }
 
@@ -128,7 +128,7 @@ void RemoteController::dumpGamepad(ControllerPtr ctl) {
     Serial.printf(
         "%s - idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
         "misc: 0x%02x, gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d\n",
-        kTag,
+        kTag.c_str(),
         ctl->index(),        // Controller Index
         ctl->dpad(),         // D-pad
         ctl->buttons(),      // bitmask of pressed buttons

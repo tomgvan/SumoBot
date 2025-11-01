@@ -3,18 +3,18 @@
 
 // Static Constants Initialization
 const std::string MotorsController::kTag = "Motors Controller";
-const uint32_t MotorsController::kDelayMs = 5;
-const uint8_t MotorsController::kMaxMotorSpeed = 255;
-const uint8_t MotorsController::kMinMotorSpeed = 0;
+const unsigned int MotorsController::kDelayMs = 5;
+const unsigned int MotorsController::kMaxMotorSpeed = 255;
+const unsigned int MotorsController::kMinMotorSpeed = 0;
 
 
 MotorsController::MotorsController(
-    uint8_t enR, 
-    uint8_t in1R, 
-    uint8_t in2R, 
-    uint8_t enL, 
-    uint8_t in1L, 
-    uint8_t in2L):
+    unsigned int enR, 
+    unsigned int in1R, 
+    unsigned int in2R, 
+    unsigned int enL, 
+    unsigned int in1L, 
+    unsigned int in2L):
     motorRight(enR, in1R, in2R),
     motorLeft(enL, in1L, in2L) {
 
@@ -30,13 +30,13 @@ void MotorsController::init() {
 
 
 //Returns the max motor speed
-uint8_t MotorsController::getMaxSpeed() {
+unsigned int MotorsController::getMaxSpeed() {
     return kMaxMotorSpeed;
 }
 
 
 //Updates the speed of all the motors
-void MotorsController::updateSpeed(uint8_t speedR, uint8_t speedL) {
+void MotorsController::updateSpeed(unsigned int speedR, unsigned int speedL) {
     motorRight.setSpeed(speedR);
     motorLeft.setSpeed(speedL);
 }

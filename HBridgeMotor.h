@@ -1,7 +1,6 @@
 #ifndef __H_BRIDGE_H
 #define __H_BRIDGE_H
 
-#include <stdint.h>
 #include <string>
 
 
@@ -14,19 +13,19 @@ public:
       kStop = -1
   } Direction;
 
-  HBridgeMotor(uint8_t en, uint8_t in1, uint8_t in2);
+  HBridgeMotor(unsigned int en, unsigned int in1, unsigned int in2);
   ~HBridgeMotor();
   void init() const;
-  void setSpeed(uint8_t speed) const;
+  void setSpeed(unsigned int speed) const;
   void setDirection(Direction direction) const;
 
 
 private:
   //Constants//
   static const std::string kTag;
-  const uint8_t kEn;
-  const uint8_t kIn1;
-  const uint8_t kIn2;
+  const unsigned int kEn;
+  const unsigned int kIn1;
+  const unsigned int kIn2;
 };
 
 #endif

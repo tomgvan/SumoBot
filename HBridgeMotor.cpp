@@ -6,7 +6,7 @@
 const std::string HBridgeMotor::kTag = "H-Bridge Motor";
 
 
-HBridgeMotor::HBridgeMotor(uint8_t en, uint8_t in1, uint8_t in2):
+HBridgeMotor::HBridgeMotor(unsigned int en, unsigned int in1, unsigned int in2):
                                       kEn(en), kIn1(in1), kIn2(in2) {
 
 }
@@ -31,7 +31,7 @@ void HBridgeMotor::init() const {
 
 
 //Sets the speed of the motor which is connected via H-Bridge 0(stall) to 255(fastest)
-void HBridgeMotor::setSpeed(uint8_t speed) const {
+void HBridgeMotor::setSpeed(unsigned int speed) const {
   analogWrite(kEn, speed);
 }
 

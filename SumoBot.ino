@@ -51,8 +51,8 @@ void loop() {
 
 
 void updateMotors(RemoteControllerData data) {
-  uint8_t speedR{};
-  uint8_t speedL{};
+  unsigned int speedR{};
+  unsigned int speedL{};
   HBridgeMotor::Direction directionR{};
   HBridgeMotor::Direction directionL{};
 

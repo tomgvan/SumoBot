@@ -11,8 +11,8 @@ const std::string DriveLogic::kTag = "Drive Logic";
 
 DriveLogic::DriveLogic(
                         double joystickMaxVal, 
-                        int16_t joystickDeadzone, 
-                        uint8_t maxMotorSpeed) :
+                        unsigned int joystickDeadzone, 
+                        unsigned int maxMotorSpeed) :
                                   kJoystickMaxVal(joystickMaxVal),
                                   kJoystickDeadzone(joystickDeadzone),
                                   kMaxMotorSpeed(maxMotorSpeed) {
@@ -25,15 +25,15 @@ DriveLogic::DriveLogic(
 //Speed - 0 to kMaxMotorSpeed
 //Direction Stop/Forward/Backward
 bool DriveLogic::handleJoystickInput(
-                          int16_t x, 
-                          int16_t y, 
-                          uint8_t& speedR, 
-                          uint8_t& speedL, 
+                          int x, 
+                          int y, 
+                          unsigned int& speedR, 
+                          unsigned int& speedL, 
                           HBridgeMotor::Direction& directionR, 
                           HBridgeMotor::Direction& directionL
                         ) {
-  int16_t signedSpeedR {};
-  int16_t signedSpeedL {};
+  int signedSpeedR {};
+  int signedSpeedL {};
 
   bool res {joystickToSpeed(x, y, signedSpeedR, signedSpeedL)};
 
@@ -44,14 +44,14 @@ bool DriveLogic::handleJoystickInput(
   speedL = abs(signedSpeedL);
   
   Serial.printf("%s - SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d\n", 
-                                         kTag, speedR, speedL, directionR, directionL);
+                                         kTag.c_str(), speedR, speedL, directionR, directionL);
 
   return res;
 }
 
 
 //Converts the provided motor speed(-100 to +100) to direction(forward/backward/stop)
-HBridgeMotor::Direction DriveLogic::speedToDirection(int16_t speed) {
+HBridgeMotor::Direction DriveLogic::speedToDirection(int speed) {
     if(speed > 0)         return HBridgeMotor::Direction::kForward;
     else if(speed < 0)    return HBridgeMotor::Direction::kBackward;
     return HBridgeMotor::Direction::kStop;
@@ -60,10 +60,10 @@ HBridgeMotor::Direction DriveLogic::speedToDirection(int16_t speed) {
 
 //Calculates from the provided x & y values of a joystick the speed(-kMaxMotorSpeed to +kMaxMotorSpeed) for the two motors
 //assigns the final value to the provided parameters which are passed by reference
-bool DriveLogic::joystickToSpeed(int16_t x, int16_t y, int16_t& speedR, int16_t& speedL) {
+bool DriveLogic::joystickToSpeed(int x, int y, int& speedR, int& speedL) {
     //
     if (hypot(static_cast<double>(x), static_cast<double>(y)) < kJoystickDeadzone) {
-        Serial.printf("%s - Joystick input magnitude inside deadzone. Returning motor speed 0.\n", kTag);
+        Serial.printf("%s - Joystick input magnitude inside deadzone. Returning motor speed 0.\n", kTag.c_str());
         speedR = 0;
         speedL = 0;
         return false;
@@ -72,12 +72,12 @@ bool DriveLogic::joystickToSpeed(int16_t x, int16_t y, int16_t& speedR, int16_t&
     //Sperate components and normalize(-1 to +1)
     double throttle {-static_cast<double>(y) / kJoystickMaxVal};
     double steer {static_cast<double>(x) / kJoystickMaxVal};
-    Serial.printf("%s - Normalized. Throttle: %d | Steer: %d\n", kTag, throttle, steer);
+    Serial.printf("%s - Normalized. Throttle: %f | Steer: %f\n", kTag.c_str(), throttle, steer);
 
     //Add the components toghter(-2 to +2)
     double rawRight {throttle - steer};
     double rawLeft {throttle + steer};
-    Serial.printf("%s - Raw R: %f | Raw L: %f\n", kTag, rawRight, rawLeft);
+    Serial.printf("%s - Raw R: %f | Raw L: %f\n", kTag.c_str(), rawRight, rawLeft);
 
     //
     double maxMagnitude {max(abs(rawLeft), abs(rawRight))};

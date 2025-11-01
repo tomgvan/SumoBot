@@ -1,15 +1,14 @@
 #ifndef __REMOTE_CONTROLLER_H
 #define __REMOTE_CONTROLLER_H
 
-#include <stdint.h>
 #include <string>
 #include <Bluepad32.h>
 
 
 struct RemoteControllerData {
   const bool error;
-  const int16_t axisX;
-  const int16_t axisY;
+  const int axisX;
+  const int axisY;
 };
 
 
@@ -21,13 +20,13 @@ public:
   bool run();
   RemoteControllerData getData();
   double getJoystickMax();
-  int16_t getJoystickDeadZone() const;
+  int getJoystickDeadZone() const;
   
 
 private:
   //Constants//
   static const std::string kTag;
-  static const int16_t kJoystickDeadzone;
+  static unsigned const int kJoystickDeadzone;
   static const double kMaxJoystickVal;
 
   //Variables//
