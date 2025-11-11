@@ -3,10 +3,12 @@
 #include <string>
 
 
-// Static Constants Initialization
-const std::string RemoteController::kTag = "Remote Controller";
-const unsigned int RemoteController::kJoystickDeadzone = 30;
-const double RemoteController::kMaxJoystickVal = 512.0;
+// Static Constants Initialization //
+const std::string RemoteController::kTag               {"Remote Controller"};
+const unsigned int RemoteController::kJoystickDeadzone {30};
+const double RemoteController::kMaxJoystickVal         {512.0};
+const unsigned int RemoteController::kMinTriggerVal    {0};
+const unsigned int RemoteController::kMaxTriggerVal    {1023};
 
 
 RemoteController::RemoteController(): controller(nullptr) {
@@ -22,8 +24,11 @@ RemoteController::~RemoteController() {
 }
 
 
-//Initialize the remote controller callbacks and allows new remote controllers to connect
-//Must be called on Startup!
+/**
+ * @brief Initializes the controller manager.
+ * @note This function must be called, typically in setup(), to register
+ * connection/disconnection callbacks and enable Bluetooth pairing before any other method is called.
+ */
 void RemoteController::init() {
   BP32.setup(
     // Lambda function for onConnect
@@ -41,21 +46,44 @@ void RemoteController::init() {
 }
 
 
-//Returns the joystick max positive value
-double RemoteController::getJoystickMax() {
+/**
+ * @brief Gets the maximum absolute value for a joystick axis.
+ */
+double RemoteController::getJoystickMax() const {
   return kMaxJoystickVal;
 }
 
 
-//Returns the joystick deadzone
-//If the axises magnitude is below the deadzone the user might want to regard it as 0
+/**
+ * @brief Gets the joystick deadzone radius.
+ * If the axis magnitude is below this value, it should be treated as 0.
+ */
 int RemoteController::getJoystickDeadZone() const {
   return kJoystickDeadzone;
 }
 
 
-//Requests to update the connected controller data
-//Returns true if data updated and ready to be read and false if no update occured
+/**
+ * @brief Gets the maximum value of the trigger.
+ */
+unsigned int RemoteController::getTriggerMax() const {
+  return kMaxTriggerVal;
+}
+
+
+/**
+ * @brief Gets the minimum value of the trigger.
+ */
+unsigned int RemoteController::getTriggerMin() const {
+  return kMinTriggerVal;
+}
+
+
+/**
+ * @brief Updates the controller state.
+ * @note This function should be called repeatedly in the main loop.
+ * It checks for a connection, polls for new data, and processes gamepad events.
+ */
 bool RemoteController::run() {
   if(!isConnected(controller))
     return false;
@@ -69,24 +97,46 @@ bool RemoteController::run() {
 }
 
 
-//Returns the latest right joystick data(x & y) if a controller is connected
-//Otherwise returns an error indication and (x=0 & y=0)
-RemoteControllerData RemoteController::getData() {
+/**
+ * @brief Returns the latest processed data from the connected controller.
+ */
+RemoteControllerData RemoteController::getData() const {
   if(!isConnected(controller))
-    return RemoteControllerData{true, 0, 0};
+    return RemoteControllerData{true, 0, 0, 0, 0};
   
-  Serial.printf("%s - Returning joystick data. X: %d | Y: %d\n", kTag.c_str(), controller->axisRX(), controller->axisRY());
-  return RemoteControllerData{false, controller->axisRX(), controller->axisRY()};
+  Serial.printf("%s - Returning joystick data. X: %d | Y: %d | Right trigger: %d | Left trigger: %d\n", 
+    kTag.c_str(), 
+    controller->axisRX(), 
+    controller->axisRY(),
+    controller->throttle(),
+    controller->brake()
+  );
+
+  return RemoteControllerData{
+    false, 
+    controller->axisRX(), 
+    controller->axisRY(),
+    static_cast<unsigned int>(controller->throttle()),
+    static_cast<unsigned int>(controller->brake())
+  };
 }
 
 
-//Returns true if there is a controller connected and false otherwise
-bool RemoteController::isConnected(ControllerPtr ctl) {
+/**
+ * @brief Checks if a specific controller pointer is valid and connected.
+ */
+bool RemoteController::isConnected(ControllerPtr ctl) const {
     return (ctl != nullptr) && (!ctl->isConnected());
 }
 
 
-//A callback which is called when a remote controller is connected
+/**
+ * @brief A callback which is called when a controller connects.
+ *
+ * Enforces a single-controller policy: if no controller is
+ * active, it makes the given controller the active one. If one is already active,
+ * it disconnects from the controller that just connected.
+ */
 void RemoteController::onConnectedController(ControllerPtr ctl) {
   Serial.printf("%s - Callback: Controller connected\n", kTag.c_str());
 
@@ -102,7 +152,12 @@ void RemoteController::onConnectedController(ControllerPtr ctl) {
 }
 
 
-//A callback which is called when a remote controller is disconnected
+/**
+ * @brief A callback which is called when a controller disconnects.
+ *
+ * If the disconnecting controller is the one this class is tracking,
+ * it sets the internal 'controller' pointer to nullptr.
+ */
 void RemoteController::onDisconnectedController(ControllerPtr ctl) {
   Serial.printf("%s - Callback: Controller disconnected\n", kTag.c_str());
 
@@ -116,15 +171,18 @@ void RemoteController::onDisconnectedController(ControllerPtr ctl) {
 }
 
 
-//Requests to update the controller data
-//Returns true if data updated and ready to be read and false if not
+/**
+ * @brief TODO
+ */
 bool RemoteController::processGamepad() {
   return BP32.update();
 }
 
 
-//Prints the connected remote gamepad data
-void RemoteController::dumpGamepad(ControllerPtr ctl) {
+/**
+ * @brief Prints all available data from a controller to the Serial port.
+ */
+void RemoteController::dumpGamepad(ControllerPtr ctl) const {
     Serial.printf(
         "%s - idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
         "misc: 0x%02x, gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d\n",

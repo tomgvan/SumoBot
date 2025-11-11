@@ -2,12 +2,17 @@
 #include "esp32-hal-gpio.h"
 
 
-// Static Constants Initialization
-const std::string HBridgeMotor::kTag = "H-Bridge Motor";
+// Static Constants Initialization //
+const std::string HBridgeMotor::kTag {"H-Bridge Motor"};
 
 
-HBridgeMotor::HBridgeMotor(unsigned int en, unsigned int in1, unsigned int in2):
-                                      kEn(en), kIn1(in1), kIn2(in2) {
+HBridgeMotor::HBridgeMotor(
+    unsigned int en, 
+    unsigned int in1, 
+    unsigned int in2):
+      kEn(en), 
+      kIn1(in1),
+      kIn2(in2) {
 
 }
 
@@ -18,9 +23,15 @@ HBridgeMotor::~HBridgeMotor() {
 }
 
 
-//Initializes the 3 gpios as output and setting the motor speed to 0(stop)
-//Must be called on startup!
-void HBridgeMotor::init() const {
+/**
+ * @brief Initializes the H-Bridge motor controller pins.
+ *
+ * @note This function must be called (e.g., in your setup() function)
+ * before using any other motor functions.
+ *
+ * Sets the EN, IN1, and IN2 pins to OUTPUT mode and the initial motor state to stopped.
+ */
+void HBridgeMotor::init() {
   pinMode(kEn, OUTPUT);
   pinMode(kIn1, OUTPUT);
   pinMode(kIn2, OUTPUT);
@@ -30,14 +41,21 @@ void HBridgeMotor::init() const {
 }
 
 
-//Sets the speed of the motor which is connected via H-Bridge 0(stall) to 255(fastest)
-void HBridgeMotor::setSpeed(unsigned int speed) const {
+/**
+ * @brief Sets the speed of the motor using PWM(higher value -> higher speed).
+ */
+void HBridgeMotor::setSpeed(unsigned int speed) {
+  //TODO check value boundaries
   analogWrite(kEn, speed);
 }
 
 
-//Sets the direction of the motor which is connected via H-Bridge stop/forward/backward
-void HBridgeMotor::setDirection(HBridgeMotor::Direction direction) const {
+/**
+ * @brief Sets the motor's direction of rotation.
+ *
+ * Controls the IN1 and IN2 pins to set the motor to forward, backward, or stop.
+ */
+void HBridgeMotor::setDirection(HBridgeMotor::Direction direction) {
   if(direction == HBridgeMotor::Direction::kForward) {
     digitalWrite(kIn1, HIGH);
     digitalWrite(kIn2, HIGH);

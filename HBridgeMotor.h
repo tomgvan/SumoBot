@@ -1,5 +1,5 @@
-#ifndef __H_BRIDGE_H
-#define __H_BRIDGE_H
+#ifndef __H_BRIDGE_MOTOR_H
+#define __H_BRIDGE_MOTOR_H
 
 #include <string>
 
@@ -15,10 +15,9 @@ public:
 
   HBridgeMotor(unsigned int en, unsigned int in1, unsigned int in2);
   ~HBridgeMotor();
-  void init() const;
-  void setSpeed(unsigned int speed) const;
-  void setDirection(Direction direction) const;
-
+  void init();
+  void setSpeed(unsigned int speed);
+  void setDirection(Direction direction);
 
 private:
   //Constants//
@@ -28,4 +27,4 @@ private:
   const unsigned int kIn2;
 };
 
-#endif
+#endif // __H_BRIDGE_MOTOR_H
