@@ -37,17 +37,15 @@ bool DriveLogic::handleJoystickInput(
                         ) const {
   int signedSpeedR {};
   int signedSpeedL {};
-
-  bool res {joystickToSpeed(x, y, signedSpeedR, signedSpeedL)};
+  const bool res {joystickToSpeed(x, y, signedSpeedR, signedSpeedL)};
 
   directionR = speedToDirection(signedSpeedR);
   directionL = speedToDirection(signedSpeedL);
 
-  speedR = abs(signedSpeedR);
-  speedL = abs(signedSpeedL);
+  speedR = std::abs(signedSpeedR);
+  speedL = std::abs(signedSpeedL);
   
-  Serial.printf("%s - SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d\n", 
-                                         kTag.c_str(), speedR, speedL, directionR, directionL);
+  ESP_LOGV(kTag.c_str(), "SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d", speedR, speedL, directionR, directionL);
 
   return res;
 }
@@ -69,8 +67,8 @@ bool DriveLogic::handleJoystickInput(
  * Returns true if inside the deadzone and false otherwise.
  */
 bool DriveLogic::isInsideDeadzone(int x, int y, int& speedR, int& speedL) const {
-    if (hypot(static_cast<double>(x), static_cast<double>(y)) < kJoystickDeadzone) {
-        Serial.printf("%s - Joystick input magnitude inside deadzone. Returning motor speed 0.\n", kTag.c_str());
+    if (std::hypot(static_cast<double>(x), static_cast<double>(y)) < kJoystickDeadzone) {
+        ESP_LOGV(kTag.c_str(), "Joystick input magnitude inside deadzone. Returning motor speed 0.");
         speedR = 0;
         speedL = 0;
         return true;
@@ -86,17 +84,105 @@ bool DriveLogic::isInsideDeadzone(int x, int y, int& speedR, int& speedL) const 
  * Normalizes joystick Y (inverted) to throttle and X to steer [-1.0, 1.0].
  * It then mixes them: right = (throttle - steer), left = (throttle + steer).
  */
-void DriveLogic::calcDifferentialSpeed(int x, int y, double& unscaledR, double& unscaledL) const {
-    //Sperate components and normalize(-1 to +1)
-    double throttle {-static_cast<double>(y) / kJoystickMaxVal};
-    double steer {static_cast<double>(x) / kJoystickMaxVal};
-    Serial.printf("%s - Normalized. Throttle: %f | Steer: %f\n", kTag.c_str(), throttle, steer);
+// void DriveLogic::calcDifferentialSpeed(int x, int y, double& unscaledR, double& unscaledL) const {
+//     const double throttleDeadzone = 0.1;
+//     double throttle {-static_cast<double>(y) / kJoystickMaxVal};
+//     double steer {static_cast<double>(x) / kJoystickMaxVal};
+//     Serial.printf("%s - Normalized. Throttle: %f | Steer: %f\n", kTag.c_str(), throttle, steer);
 
-    //Add the components toghter(-2 to +2)
-    unscaledR = throttle - steer;
-    unscaledL = throttle + steer;
-    Serial.printf("%s - Unscaled R: %f | Unscaled L: %f\n", kTag.c_str(), unscaledR, unscaledL);
+//     if (abs(throttle) < throttleDeadzone) {
+//         Serial.printf("%s - Mode: Point Turn\n", kTag.c_str());
+//         unscaledR = -steer;
+//         unscaledL = steer;
+//     } 
+//     else {
+//         Serial.printf("%s - Mode: Arc Turn\n", kTag.c_str());
+//         unscaledR = throttle;
+//         unscaledL = throttle;
+
+//         if (steer > 0.0) {
+//             unscaledR = throttle * (1.0 - steer);
+//         } 
+//         else if (steer < 0.0) {
+//             unscaledL = throttle * (1.0 + steer);
+//         }
+//     }
+
+//     Serial.printf("%s - Unscaled R: %f | Unscaled L: %f\n", kTag.c_str(), unscaledR, unscaledL);
+// }
+
+
+
+
+void DriveLogic::setPointTurnUnscaled(double steer, double& unscaledR, double& unscaledL) const {
+    ESP_LOGV(kTag.c_str(), "Mode: Point Turn");
+    unscaledR = -steer;
+    unscaledL = steer;
 }
+
+
+void DriveLogic::setStraightUnscaled(double throttle, double& unscaledR, double& unscaledL) const {
+    ESP_LOGV(kTag.c_str(), "Mode: Straight");
+    unscaledR = throttle;
+    unscaledL = throttle;
+}
+
+
+void DriveLogic::setArcTurnUnscaled(double x, 
+                                    double y, 
+                                    double throttle, 
+                                    double steer,  
+                                    double& unscaledR, 
+                                    double& unscaledL) const {
+    const double magnitude      {std::hypot(x, y) / kJoystickMaxVal};
+    const double turnAngleRad   {std::atan2(x, y)};
+    double angleForRatio        {};
+    if (steer >= 0.0)
+        angleForRatio = std::abs(turnAngleRad);
+    else 
+        angleForRatio = PI - std::abs(turnAngleRad);
+    const double turnRatio {1.0 - (angleForRatio / HALF_PI)};
+
+    ESP_LOGV(kTag.c_str(), "Mode: Arc Turn");
+
+    if (steer > 0.0) {
+        unscaledL = magnitude;
+        unscaledR = magnitude * turnRatio;
+    } else {
+        unscaledR = magnitude;
+        unscaledL = magnitude * turnRatio;
+    }
+
+    if(throttle < 0.0) {
+        unscaledR = -unscaledR;
+        unscaledL = -unscaledL;
+    }
+}
+
+
+/**
+ * @brief Calculates differential steering motor speeds while maximizing motors torque when turning.
+ *
+ * 
+ */
+void DriveLogic::calcDifferentialSpeed(int x, int y, double& unscaledR, double& unscaledL) const {
+    const double throttleDeadzone   {0.1};
+    const double xDouble            {static_cast<double>(x)};
+    const double yDouble            {-static_cast<double>(y)};
+    const double steer              {xDouble / kJoystickMaxVal};
+    const double throttle           {yDouble / kJoystickMaxVal};
+    ESP_LOGV(kTag.c_str(), "Normalized. Throttle: %f | Steer: %f", throttle, steer);
+
+    if (std::abs(throttle) < throttleDeadzone)
+        setPointTurnUnscaled(steer, unscaledR, unscaledL);
+    else if(steer == 0.0)
+        setStraightUnscaled(throttle, unscaledR, unscaledL);
+    else
+        setArcTurnUnscaled(xDouble, yDouble, throttle, steer, unscaledR, unscaledL);
+
+    ESP_LOGV(kTag.c_str(), "Unscaled R: %f | Unscaled L: %f", unscaledR, unscaledL);
+}
+
 
 
 /**
@@ -104,11 +190,10 @@ void DriveLogic::calcDifferentialSpeed(int x, int y, double& unscaledR, double& 
  * at 1.0 while preserving the steering ratio.
  */
 double DriveLogic::calcNormalizationFactor(double unscaledR, double unscaledL) const {
-    double maxMagnitude {max(abs(unscaledR), abs(unscaledL))};
+    const double maxMagnitude {std::max(std::abs(unscaledR), std::abs(unscaledL))};
     double factor {1.0};
     if (maxMagnitude > 1.0)
         factor = 1.0 / maxMagnitude;
-    // log(VERBOSE, TAG, "Speed scale: " + scale);
 
     return factor;
 }
@@ -128,12 +213,11 @@ bool DriveLogic::joystickToSpeed(int x, int y, int& speedR, int& speedL) const {
     double unscaledLeft {};
     calcDifferentialSpeed(x, y, unscaledRight, unscaledLeft);
 
-    double factor {calcNormalizationFactor(unscaledRight, unscaledLeft)};
+    const double factor {calcNormalizationFactor(unscaledRight, unscaledLeft)};
 
     //Finalize motors speed(0 to kMaxMotorSpeed)
     speedR = (unscaledRight * factor) * kMaxMotorSpeed;
     speedL = (unscaledLeft * factor) * kMaxMotorSpeed;
-    // log(INFO, TAG, "R Speed: " + motorRight + " L Speed: " + motorLeft);
 
     return true;
 }

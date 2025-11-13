@@ -31,7 +31,7 @@ private:
 
   //Variables//
   double pulseWidthAccumulatorUs;
-  unsigned int lastIterationMs;
+  unsigned long lastIterationUs;
   Servo servoMotor;
 
   //Methods//

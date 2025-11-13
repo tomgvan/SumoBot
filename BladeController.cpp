@@ -1,6 +1,6 @@
 #include "BladeController.h"
-#include <math.h>
 #include <Arduino.h>
+#include <cmath>
 
 
 // Static Constants Initialization //
@@ -18,7 +18,7 @@ BladeController::BladeController(
       kMaxPulseWidthUs(maxPulseWidthUs),
       kFreq(freq),
       kDegreesPerUs(degreesPerSec / 1000.0 / 1000.0),
-      lastIterationMs(millis()) {
+      lastIterationUs(micros()) {
 
 }
 
@@ -37,9 +37,6 @@ BladeController::~BladeController() {
  */
 void BladeController::init() {
 	ESP32PWM::allocateTimer(0);
-	ESP32PWM::allocateTimer(1);
-	ESP32PWM::allocateTimer(2);
-	ESP32PWM::allocateTimer(3);
 
 	servoMotor.setPeriodHertz(kFreq);
 	servoMotor.attach(kPin, kMinPulseWidthUs, kMaxPulseWidthUs);
@@ -56,10 +53,21 @@ void BladeController::init() {
 double BladeController::calculatePositionChange(unsigned int val, unsigned int minVal, unsigned int maxVal) const {
   val = constrain(val, minVal, maxVal);
 
-  double elapsedMicroseconds {(millis() - lastIterationMs) * 1000.0};
-  double normalizedSpeed {(val - minVal) / static_cast<double>(maxVal - minVal)};//0.0 - 1.0
+  constexpr unsigned long kMaxDeltaUs {5 * 60 * 1000 * 1000};//5 Minutes
+  const unsigned long currentMicroseconds {micros()};
 
-  return elapsedMicroseconds * (kDegreesPerUs * normalizedSpeed);
+  //Handle overflow
+  if(currentMicroseconds < lastIterationUs)
+    return 0.0;
+  if(currentMicroseconds - lastIterationUs > kMaxDeltaUs)
+    return 0.0;
+
+  const double elapsedMicroseconds {static_cast<double>(currentMicroseconds - lastIterationUs)};
+  const double normalizedSpeed {(val - minVal) / static_cast<double>(maxVal - minVal)};//0.0 - 1.0
+  const double positionChange {elapsedMicroseconds * (kDegreesPerUs * normalizedSpeed)};
+  ESP_LOGW(kTag.c_str(), "elapsed time(us): %f | normalized speed: %f | position change: %f", elapsedMicroseconds, normalizedSpeed, positionChange);
+
+  return positionChange;
 }
 
 
@@ -70,12 +78,13 @@ double BladeController::calculatePositionChange(unsigned int val, unsigned int m
  * accumulator, causing the next calls to `run()` to move towards the max limit.
  */
 void BladeController::lift(unsigned int val, unsigned int minVal, unsigned int maxVal) {
-  double positionChangeUs {calculatePositionChange(val, minVal, maxVal)};
+  const double positionChangeUs {calculatePositionChange(val, minVal, maxVal)};
 
   if(pulseWidthAccumulatorUs <= 0.0)
     pulseWidthAccumulatorUs = positionChangeUs;
   else
     pulseWidthAccumulatorUs += positionChangeUs;
+  ESP_LOGW(kTag.c_str(), "Lift. pulseWidthAccumulatorUs: %f", pulseWidthAccumulatorUs);
 }
 
 
@@ -86,12 +95,13 @@ void BladeController::lift(unsigned int val, unsigned int minVal, unsigned int m
  * accumulator, causing the next calls to `run()` to move towards the min limit.
  */
 void BladeController::lower(unsigned int val, unsigned int minVal, unsigned int maxVal) {
-  double positionChangeUs {calculatePositionChange(val, minVal, maxVal)};
+  const double positionChangeUs {calculatePositionChange(val, minVal, maxVal)};
 
   if(pulseWidthAccumulatorUs >= 0.0)
     pulseWidthAccumulatorUs = -positionChangeUs;
   else
     pulseWidthAccumulatorUs -= positionChangeUs;
+  ESP_LOGW(kTag.c_str(), "Lower. pulseWidthAccumulatorUs: %f", pulseWidthAccumulatorUs);
 }
 
 
@@ -103,10 +113,10 @@ void BladeController::lower(unsigned int val, unsigned int minVal, unsigned int 
  * accumulator for the next loop.
  */
 int BladeController::applyAccumulatedChange(int currentPulseWidthUs) {
-  double changeToApplyUs {trunc(pulseWidthAccumulatorUs)};
+  const double changeToApplyUs {std::trunc(pulseWidthAccumulatorUs)};
+  const int newPulseWidthUs {currentPulseWidthUs + static_cast<int>(changeToApplyUs)};
   pulseWidthAccumulatorUs -= changeToApplyUs;
 
-  int newPulseWidthUs {currentPulseWidthUs + static_cast<int>(changeToApplyUs)};
   return constrain(newPulseWidthUs, kMinPulseWidthUs, kMaxPulseWidthUs);
 }
 
@@ -119,12 +129,14 @@ int BladeController::applyAccumulatedChange(int currentPulseWidthUs) {
  * applying the accumulated change, and writes the new value back.
  */
 void BladeController::run() {
-  lastIterationMs = millis();
+  lastIterationUs = micros();
   if(pulseWidthAccumulatorUs < 1.0 && pulseWidthAccumulatorUs > -1.0)
     return;
 
-  int currentPulseWidthUs {servoMotor.readMicroseconds()};
-  int newPulseWidthUs {applyAccumulatedChange(currentPulseWidthUs)};
-  
+  const int currentPulseWidthUs {servoMotor.readMicroseconds()};
+  const int newPulseWidthUs {applyAccumulatedChange(currentPulseWidthUs)};
+  ESP_LOGW(kTag.c_str(), "Current pulse width(us): %d | New pulse width(us): %d | Pulse width accumulator(us): %f", 
+                                                        currentPulseWidthUs, newPulseWidthUs, pulseWidthAccumulatorUs);
+
   servoMotor.writeMicroseconds(newPulseWidthUs);
 }

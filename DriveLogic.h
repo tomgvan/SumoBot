@@ -30,6 +30,14 @@ private:
   bool isInsideDeadzone(int x, int y, int& speedR, int& speedL) const;
   void calcDifferentialSpeed(int x, int y, double& unscaledR, double& unscaledL) const;
   double calcNormalizationFactor(double unscaledR, double unscaledL) const;
+  void setPointTurnUnscaled(double steer, double& unscaledR, double& unscaledL) const;
+  void setStraightUnscaled(double throttle, double& unscaledR, double& unscaledL) const;
+  void setArcTurnUnscaled(double x, 
+                          double y, 
+                          double throttle, 
+                          double steer,  
+                          double& unscaledR, 
+                          double& unscaledL) const;
 };
 
 #endif // __DRIVE_LOGIC_H
