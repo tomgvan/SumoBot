@@ -1,8 +1,8 @@
 #ifndef __DRIVE_LOGIC_H
 #define __DRIVE_LOGIC_H
 
-#include "HBridgeMotor.h"
 #include <string>
+#include "HBridgeMotor.h"
 
 
 class DriveLogic {
