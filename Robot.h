@@ -5,6 +5,7 @@
 #include "RemoteController.h"
 #include "DriveLogic.h"
 #include "BladeController.h"
+#include "Simulator.h"
 
 
 class Robot {
@@ -19,6 +20,7 @@ private:
   MotorsController motorsController;
   DriveLogic driveLogic;
   BladeController bladeController;
+  Simulator simulator;
 
   //Methods//
   void updateMotors(RemoteControllerData data);

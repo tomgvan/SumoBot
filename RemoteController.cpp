@@ -1,6 +1,5 @@
 #include "RemoteController.h"
 #include <Arduino.h>
-#include <string>
 
 
 // Static Constants Initialization //
@@ -30,6 +29,10 @@ RemoteController::~RemoteController() {
  * connection/disconnection callbacks and enable Bluetooth pairing before any other method is called.
  */
 void RemoteController::init() {
+  ESP_LOGI(kTag.c_str(), "Firmware: %s", BP32.firmwareVersion());
+  const uint8_t* addr = BP32.localBdAddress();
+  ESP_LOGI(kTag.c_str(), "BD Addr: %2X:%2X:%2X:%2X:%2X:%2X", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
   BP32.setup(
     // Lambda function for onConnect
     [this](ControllerPtr controller) {
@@ -42,6 +45,8 @@ void RemoteController::init() {
     }
   );
   
+  BP32.forgetBluetoothKeys();
+
   BP32.enableNewBluetoothConnections(true);
 }
 
@@ -104,8 +109,8 @@ RemoteControllerData RemoteController::getData() const {
   if(!isConnected(controller))
     return RemoteControllerData{true, 0, 0, 0, 0};
   
-  Serial.printf("%s - Returning joystick data. X: %d | Y: %d | Right trigger: %d | Left trigger: %d\n", 
-    kTag.c_str(), 
+  ESP_LOGV(kTag.c_str(), 
+    "Returning joystick data. X: %d | Y: %d | Right trigger: %d | Left trigger: %d",
     controller->axisRX(), 
     controller->axisRY(),
     controller->throttle(),
@@ -138,14 +143,14 @@ bool RemoteController::isConnected(ControllerPtr ctl) const {
  * it disconnects from the controller that just connected.
  */
 void RemoteController::onConnectedController(ControllerPtr ctl) {
-  Serial.printf("%s - Callback: Controller connected\n", kTag.c_str());
+  ESP_LOGI(kTag.c_str(), "Callback: Controller connected");
 
   if(controller == nullptr) {
-    Serial.printf("%s - Callback: Added controller\n", kTag.c_str());
+    ESP_LOGV(kTag.c_str(), "Callback: Added controller", kTag.c_str());
     controller = ctl;
   }
   else {
-    Serial.printf("%s - Callback: There is already an active controller connected!\n", kTag.c_str());
+    ESP_LOGV(kTag.c_str(), "Callback: There is already an active controller connected!", kTag.c_str());
     if(ctl != nullptr)
       ctl->disconnect();
   }
@@ -159,16 +164,17 @@ void RemoteController::onConnectedController(ControllerPtr ctl) {
  * it sets the internal 'controller' pointer to nullptr.
  */
 void RemoteController::onDisconnectedController(ControllerPtr ctl) {
-  Serial.printf("%s - Callback: Controller disconnected\n", kTag.c_str());
+  ESP_LOGI(kTag.c_str(), "Callback: Controller disconnected");
 
   if(controller == ctl) {
-    Serial.printf("%s - Callback: Removed active controller\n", kTag.c_str());
+    ESP_LOGV(kTag.c_str(), "Callback: Removed active controller");
     controller = nullptr;
   }
   else {
-    Serial.printf("%s - Callback: No active controller found!\n", kTag.c_str());
+    ESP_LOGV(kTag.c_str(), "Callback: No active controller found!");
   }
 }
+
 
 
 /**
@@ -183,10 +189,9 @@ bool RemoteController::processGamepad() {
  * @brief Prints all available data from a controller to the Serial port.
  */
 void RemoteController::dumpGamepad(ControllerPtr ctl) const {
-    Serial.printf(
-        "%s - idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
-        "misc: 0x%02x, gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d\n",
-        kTag.c_str(),
+    ESP_LOGV(kTag.c_str(),
+        "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
+        "misc: 0x%02x, gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d",
         ctl->index(),        // Controller Index
         ctl->dpad(),         // D-pad
         ctl->buttons(),      // bitmask of pressed buttons

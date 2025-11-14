@@ -2,6 +2,9 @@
 #include "Gpios.h"
 
 
+#define SIMULATOR
+
+
 Robot::Robot():
   remoteController(),
   motorsController(
@@ -19,11 +22,12 @@ Robot::Robot():
   ),
   bladeController(
       gpios::kBladeMotorPin,
-      1000,
-      2000,
+      750,
+      2250,
       50,
       60/0.2
-  ) {
+  ),
+  simulator(2000) {
 
 }
 
@@ -46,13 +50,23 @@ void Robot::init() {
  * pass it to the motors controller that will update their position accordingly.
  */
 void Robot::run() {
-  bool updated {remoteController.run()};
+  
+#ifdef SIMULATOR
+    RemoteControllerData data {simulator.getData()};
+    if(!data.error) {
+      updateMotors(data);
+    }
+#else
+  const bool updated {remoteController.run()};
 
   if(updated) {
-    RemoteControllerData data {remoteController.getData()};
-    if(!data.error)
+      RemoteControllerData data {remoteController.getData()};
+
+    if(!data.error) {
       updateMotors(data);
+    }
   }
+#endif
 
   bladeController.run();
 }
@@ -70,7 +84,7 @@ void Robot::updateWheelMotors(RemoteControllerData data) {
   HBridgeMotor::Direction directionR{};
   HBridgeMotor::Direction directionL{};
 
-  bool inputHandled = driveLogic.handleJoystickInput(
+  const bool inputHandled = driveLogic.handleJoystickInput(
     data.axisX, 
     data.axisY, 
     speedR, 
