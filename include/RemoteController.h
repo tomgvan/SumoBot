@@ -42,7 +42,6 @@ private:
   void onConnectedController(ControllerPtr ctl);
   void onDisconnectedController(ControllerPtr ctl);
   void dumpGamepad(ControllerPtr ctl) const;
-  bool processGamepad();
 };
 
 #endif // __REMOTE_CONTROLLER_H

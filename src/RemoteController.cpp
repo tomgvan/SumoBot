@@ -47,7 +47,9 @@ void RemoteController::init() {
   
   BP32.forgetBluetoothKeys();
 
-  BP32.enableNewBluetoothConnections(true);
+  // BP32.enableNewBluetoothConnections(true);
+  
+    BP32.enableVirtualDevice(false);
 }
 
 
@@ -90,15 +92,7 @@ unsigned int RemoteController::getTriggerMin() const {
  * It checks for a connection, polls for new data, and processes gamepad events.
  */
 bool RemoteController::run() {
-  if(!isConnected(controller))
-    return false;
-  if(!controller->hasData())
-    return false;
-
-  if (controller->isGamepad())
-    return processGamepad();
-
-  return false;
+  return BP32.update();
 }
 
 
@@ -108,7 +102,9 @@ bool RemoteController::run() {
 RemoteControllerData RemoteController::getData() const {
   if(!isConnected(controller))
     return RemoteControllerData{true, 0, 0, 0, 0};
-  
+  if(!controller->isGamepad())
+    return RemoteControllerData{true, 0, 0, 0, 0};
+
   ESP_LOGV(kTag.c_str(), 
     "Returning joystick data. X: %d | Y: %d | Right trigger: %d | Left trigger: %d",
     controller->axisRX(), 
@@ -131,7 +127,7 @@ RemoteControllerData RemoteController::getData() const {
  * @brief Checks if a specific controller pointer is valid and connected.
  */
 bool RemoteController::isConnected(ControllerPtr ctl) const {
-    return (ctl != nullptr) && (!ctl->isConnected());
+    return (ctl != nullptr) && (ctl->isConnected());
 }
 
 
@@ -173,15 +169,6 @@ void RemoteController::onDisconnectedController(ControllerPtr ctl) {
   else {
     ESP_LOGV(kTag.c_str(), "Callback: No active controller found!");
   }
-}
-
-
-
-/**
- * @brief TODO
- */
-bool RemoteController::processGamepad() {
-  return BP32.update();
 }
 
 
