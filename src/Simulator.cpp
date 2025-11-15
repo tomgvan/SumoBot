@@ -28,7 +28,7 @@ Simulator::Simulator(
       {SimulatorState::kForwardArcTurnLeft,       {false,   -481,   -175,   128,  0}},    //Forward arc left partial throttle(20deg)
       {SimulatorState::kBackwardArcTurnLeft,      {false,   -481,   175,    0,    128}},  //Backward arc left partial throttle(20deg)
       {SimulatorState::kPointTurnRight,           {false,   256,    0,      0,    0}},    //Point turn right half throttle
-      {SimulatorState::kPointTurnLeft,            {false,   0,      -256,   0,    256}},  //Point turn left half throttle
+      {SimulatorState::kPointTurnLeft,            {false,   -256,   0,      0,    256}}   //Point turn left half throttle
     }),
     currentState(SimulatorState::kIdle),
     lastStateUpdateMs(0) {
@@ -37,18 +37,18 @@ Simulator::Simulator(
 
 
 struct RemoteControllerData Simulator::getData() {
-  if(currentState != SimulatorState::kIdle && 
-        millis() - lastStateUpdateMs < kStateChangeMs)
-    return simulatorData.at(currentState);
   // if(currentState != SimulatorState::kIdle && 
   //       millis() - lastStateUpdateMs < kStateChangeMs)
-  //   return simulatorData.at(SimulatorState::kIdle);
+  //   return simulatorData.at(currentState);
+  if(currentState != SimulatorState::kIdle && 
+        millis() - lastStateUpdateMs < kStateChangeMs)
+    return simulatorData.at(SimulatorState::kIdle);
 
   lastStateUpdateMs = millis();
 
-  ESP_LOGV(kTag.c_str(), "Old state: %d", currentState);
+  ESP_LOGW(kTag.c_str(), "Old state: %d", currentState);
   currentState = simulatorTransition.at(currentState);
-  ESP_LOGV(kTag.c_str(), "New state: %d", currentState);
+  ESP_LOGW(kTag.c_str(), "New state: %d", currentState);
 
   return simulatorData.at(currentState);
 }

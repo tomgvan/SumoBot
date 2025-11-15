@@ -45,7 +45,7 @@ bool DriveLogic::handleJoystickInput(
   speedR = std::abs(signedSpeedR);
   speedL = std::abs(signedSpeedL);
   
-  ESP_LOGV(kTag.c_str(), "SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d", speedR, speedL, directionR, directionL);
+  ESP_LOGW(kTag.c_str(), "x: %d | y: %d | SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d", x, y, speedR, speedL, directionR, directionL);
 
   return res;
 }
@@ -68,7 +68,7 @@ bool DriveLogic::handleJoystickInput(
  */
 bool DriveLogic::isInsideDeadzone(int x, int y, int& speedR, int& speedL) const {
     if (std::hypot(static_cast<double>(x), static_cast<double>(y)) < kJoystickDeadzone) {
-        ESP_LOGV(kTag.c_str(), "Joystick input magnitude inside deadzone. Returning motor speed 0.");
+        ESP_LOGW(kTag.c_str(), "Joystick input magnitude inside deadzone. Returning motor speed 0.");
         speedR = 0;
         speedL = 0;
         return true;
@@ -115,14 +115,14 @@ bool DriveLogic::isInsideDeadzone(int x, int y, int& speedR, int& speedL) const 
 
 
 void DriveLogic::setPointTurnUnscaled(double steer, double& unscaledR, double& unscaledL) const {
-    ESP_LOGV(kTag.c_str(), "Mode: Point Turn");
+    ESP_LOGW(kTag.c_str(), "Mode: Point Turn");
     unscaledR = -steer;
     unscaledL = steer;
 }
 
 
 void DriveLogic::setStraightUnscaled(double throttle, double& unscaledR, double& unscaledL) const {
-    ESP_LOGV(kTag.c_str(), "Mode: Straight");
+    ESP_LOGW(kTag.c_str(), "Mode: Straight");
     unscaledR = throttle;
     unscaledL = throttle;
 }
@@ -134,28 +134,24 @@ void DriveLogic::setArcTurnUnscaled(double x,
                                     double steer,  
                                     double& unscaledR, 
                                     double& unscaledL) const {
-    const double magnitude      {std::hypot(x, y) / kJoystickMaxVal};
-    const double turnAngleRad   {std::atan2(x, y)};
-    double angleForRatio        {};
-    if (steer >= 0.0)
-        angleForRatio = std::abs(turnAngleRad);
-    else 
-        angleForRatio = PI - std::abs(turnAngleRad);
-    const double turnRatio {1.0 - (angleForRatio / HALF_PI)};
+    const double magnitude              {std::hypot(x, y) / kJoystickMaxVal};
+    const double turnAngleRad           {std::atan2(x, y)};
+    const double outerWheelSpeed        {throttle < 0.0 ? -magnitude : magnitude};
 
-    ESP_LOGV(kTag.c_str(), "Mode: Arc Turn");
+    //[0.0 - 1.0] The closer the x & y to straight forward/backward the closer it is to 1.0
+    //The closer the x & y to point turn the closer it is to 0.0
+    const double innerWheelSpeedRatio   {std::abs(1.0 - (std::abs(turnAngleRad) / HALF_PI))};
+
+    ESP_LOGW(kTag.c_str(), "Mode: Arc Turn. | base speed: %f | angle(rad): %f | turn ratio: %f", outerWheelSpeed, turnAngleRad, innerWheelSpeedRatio);
 
     if (steer > 0.0) {
-        unscaledL = magnitude;
-        unscaledR = magnitude * turnRatio;
+        //Turning right -> Left wheel is Outer wheel
+        unscaledL = outerWheelSpeed;
+        unscaledR = outerWheelSpeed * innerWheelSpeedRatio;
     } else {
-        unscaledR = magnitude;
-        unscaledL = magnitude * turnRatio;
-    }
-
-    if(throttle < 0.0) {
-        unscaledR = -unscaledR;
-        unscaledL = -unscaledL;
+        //Turning left -> Right wheel is Outer wheel
+        unscaledR = outerWheelSpeed;
+        unscaledL = outerWheelSpeed * innerWheelSpeedRatio;
     }
 }
 
@@ -171,7 +167,7 @@ void DriveLogic::calcDifferentialSpeed(int x, int y, double& unscaledR, double& 
     const double yDouble            {-static_cast<double>(y)};
     const double steer              {xDouble / kJoystickMaxVal};
     const double throttle           {yDouble / kJoystickMaxVal};
-    ESP_LOGV(kTag.c_str(), "Normalized. Throttle: %f | Steer: %f", throttle, steer);
+    ESP_LOGW(kTag.c_str(), "Normalized. Throttle: %f | Steer: %f", throttle, steer);
 
     if (std::abs(throttle) < throttleDeadzone)
         setPointTurnUnscaled(steer, unscaledR, unscaledL);
@@ -180,7 +176,7 @@ void DriveLogic::calcDifferentialSpeed(int x, int y, double& unscaledR, double& 
     else
         setArcTurnUnscaled(xDouble, yDouble, throttle, steer, unscaledR, unscaledL);
 
-    ESP_LOGV(kTag.c_str(), "Unscaled R: %f | Unscaled L: %f", unscaledR, unscaledL);
+    ESP_LOGW(kTag.c_str(), "Unscaled R: %f | Unscaled L: %f", unscaledR, unscaledL);
 }
 
 
