@@ -4,7 +4,7 @@
 
 // Static Constants Initialization //
 const std::string RemoteController::kTag               {"Remote Controller"};
-const unsigned int RemoteController::kJoystickDeadzone {30};
+const unsigned int RemoteController::kJoystickDeadzone {100};
 const double RemoteController::kMaxJoystickVal         {512.0};
 const unsigned int RemoteController::kMinTriggerVal    {0};
 const unsigned int RemoteController::kMaxTriggerVal    {1023};
@@ -47,9 +47,9 @@ void RemoteController::init() {
   
   BP32.forgetBluetoothKeys();
 
-  // BP32.enableNewBluetoothConnections(true);
+  BP32.enableNewBluetoothConnections(true);
   
-    BP32.enableVirtualDevice(false);
+  BP32.enableVirtualDevice(false);
 }
 
 
@@ -160,6 +160,7 @@ void RemoteController::onConnectedController(ControllerPtr ctl) {
  * it sets the internal 'controller' pointer to nullptr.
  */
 void RemoteController::onDisconnectedController(ControllerPtr ctl) {
+  //TODO on disconnect stop all motors
   ESP_LOGI(kTag.c_str(), "Callback: Controller disconnected");
 
   if(controller == ctl) {
