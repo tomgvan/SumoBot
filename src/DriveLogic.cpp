@@ -27,7 +27,7 @@ DriveLogic::DriveLogic(
  * into unsigned speeds (0 to kMaxMotorSpeed) and `HBridgeMotor::Direction`
  * enums for output.
  */
-bool DriveLogic::handleJoystickInput(
+void DriveLogic::handleJoystickInput(
                           int x, 
                           int y, 
                           unsigned int& speedR, 
@@ -35,9 +35,9 @@ bool DriveLogic::handleJoystickInput(
                           HBridgeMotor::Direction& directionR, 
                           HBridgeMotor::Direction& directionL
                         ) const {
-  int signedSpeedR {};
-  int signedSpeedL {};
-  const bool res {joystickToSpeed(x, y, signedSpeedR, signedSpeedL)};
+  int signedSpeedR {0};
+  int signedSpeedL {0};
+  joystickToSpeed(x, y, signedSpeedR, signedSpeedL);
 
   directionR = speedToDirection(signedSpeedR);
   directionL = speedToDirection(signedSpeedL);
@@ -45,9 +45,7 @@ bool DriveLogic::handleJoystickInput(
   speedR = std::abs(signedSpeedR);
   speedL = std::abs(signedSpeedL);
   
-  ESP_LOGW(kTag.c_str(), "x: %d | y: %d | SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d", x, y, speedR, speedL, directionR, directionL);
-
-  return res;
+  ESP_LOGI(kTag.c_str(), "x: %d | y: %d | SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d", x, y, speedR, speedL, directionR, directionL);
 }
 
 
@@ -62,15 +60,13 @@ bool DriveLogic::handleJoystickInput(
 
 
 /**
- * @brief Checks if joystick (x, y) is in the deadzone.
+ * @brief Checks if joystick (x, y) is in the circular deadzone.
  * 
  * Returns true if inside the deadzone and false otherwise.
  */
-bool DriveLogic::isInsideDeadzone(int x, int y, int& speedR, int& speedL) const {
+bool DriveLogic::isInsideDeadzone(int x, int y) const {
     if (std::hypot(static_cast<double>(x), static_cast<double>(y)) < kJoystickDeadzone) {
-        ESP_LOGW(kTag.c_str(), "Joystick input magnitude inside deadzone. Returning motor speed 0.");
-        speedR = 0;
-        speedL = 0;
+        ESP_LOGI(kTag.c_str(), "Joystick input magnitude inside deadzone. Returning motor speed 0.");
         return true;
     }
 
@@ -115,34 +111,32 @@ bool DriveLogic::isInsideDeadzone(int x, int y, int& speedR, int& speedL) const 
 
 
 void DriveLogic::setPointTurnUnscaled(double steer, double& unscaledR, double& unscaledL) const {
-    ESP_LOGW(kTag.c_str(), "Mode: Point Turn");
+    ESP_LOGI(kTag.c_str(), "Mode: Point Turn");
     unscaledR = -steer;
     unscaledL = steer;
 }
 
 
 void DriveLogic::setStraightUnscaled(double throttle, double& unscaledR, double& unscaledL) const {
-    ESP_LOGW(kTag.c_str(), "Mode: Straight");
+    ESP_LOGI(kTag.c_str(), "Mode: Straight");
     unscaledR = throttle;
     unscaledL = throttle;
 }
 
 
-void DriveLogic::setArcTurnUnscaled(double x, 
-                                    double y, 
-                                    double throttle, 
+void DriveLogic::setArcTurnUnscaled(double throttle, 
                                     double steer,  
                                     double& unscaledR, 
                                     double& unscaledL) const {
-    const double magnitude              {std::hypot(x, y) / kJoystickMaxVal};
-    const double turnAngleRad           {std::atan2(x, y)};
+    const double magnitude              {std::hypot(steer, throttle)};
+    const double turnAngleRad           {std::atan2(steer, throttle)};
     const double outerWheelSpeed        {throttle < 0.0 ? -magnitude : magnitude};
 
     //[0.0 - 1.0] The closer the x & y to straight forward/backward the closer it is to 1.0
     //The closer the x & y to point turn the closer it is to 0.0
     const double innerWheelSpeedRatio   {std::abs(1.0 - (std::abs(turnAngleRad) / HALF_PI))};
 
-    ESP_LOGW(kTag.c_str(), "Mode: Arc Turn. | base speed: %f | angle(rad): %f | turn ratio: %f", outerWheelSpeed, turnAngleRad, innerWheelSpeedRatio);
+    ESP_LOGI(kTag.c_str(), "Mode: Arc Turn. | base speed: %f | angle(rad): %f | turn ratio: %f", outerWheelSpeed, turnAngleRad, innerWheelSpeedRatio);
 
     if (steer > 0.0) {
         //Turning right -> Left wheel is Outer wheel
@@ -162,21 +156,20 @@ void DriveLogic::setArcTurnUnscaled(double x,
  * 
  */
 void DriveLogic::calcDifferentialSpeed(int x, int y, double& unscaledR, double& unscaledL) const {
-    const double throttleDeadzone   {0.1};
-    const double xDouble            {static_cast<double>(x)};
-    const double yDouble            {-static_cast<double>(y)};
-    const double steer              {xDouble / kJoystickMaxVal};
-    const double throttle           {yDouble / kJoystickMaxVal};
-    ESP_LOGW(kTag.c_str(), "Normalized. Throttle: %f | Steer: %f", throttle, steer);
+    //TODO adjust values to the circular deadzone
+    const double throttleDeadzone   {static_cast<double>(kJoystickDeadzone) / kJoystickMaxVal};
+    const double steer              {static_cast<double>(x) / kJoystickMaxVal};
+    const double throttle           {(-static_cast<double>(y)) / kJoystickMaxVal};
+    ESP_LOGI(kTag.c_str(), "Normalized. Throttle: %f | Steer: %f", throttle, steer);
 
     if (std::abs(throttle) < throttleDeadzone)
         setPointTurnUnscaled(steer, unscaledR, unscaledL);
     else if(steer == 0.0)
         setStraightUnscaled(throttle, unscaledR, unscaledL);
     else
-        setArcTurnUnscaled(xDouble, yDouble, throttle, steer, unscaledR, unscaledL);
+        setArcTurnUnscaled(throttle, steer, unscaledR, unscaledL);
 
-    ESP_LOGW(kTag.c_str(), "Unscaled R: %f | Unscaled L: %f", unscaledR, unscaledL);
+    ESP_LOGI(kTag.c_str(), "Unscaled R: %f | Unscaled L: %f", unscaledR, unscaledL);
 }
 
 
@@ -201,9 +194,9 @@ double DriveLogic::calcNormalizationFactor(double unscaledR, double unscaledL) c
  * Applies the deadzone, calculates the differential steering mix, and proportionally scales
  * the output to the [-kMaxMotorSpeed, +kMaxMotorSpeed] range.
  */
-bool DriveLogic::joystickToSpeed(int x, int y, int& speedR, int& speedL) const {
-    if (isInsideDeadzone(x, y, speedR, speedL))
-        return false;
+void DriveLogic::joystickToSpeed(int x, int y, int& speedR, int& speedL) const {
+    if (isInsideDeadzone(x, y))
+        return;
 
     double unscaledRight {};
     double unscaledLeft {};
@@ -214,6 +207,4 @@ bool DriveLogic::joystickToSpeed(int x, int y, int& speedR, int& speedL) const {
     //Finalize motors speed(0 to kMaxMotorSpeed)
     speedR = (unscaledRight * factor) * kMaxMotorSpeed;
     speedL = (unscaledLeft * factor) * kMaxMotorSpeed;
-
-    return true;
 }

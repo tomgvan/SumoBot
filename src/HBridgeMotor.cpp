@@ -58,11 +58,11 @@ void HBridgeMotor::setSpeed(unsigned int speed) {
 void HBridgeMotor::setDirection(HBridgeMotor::Direction direction) {
   if(direction == HBridgeMotor::Direction::kForward) {
     digitalWrite(kIn1, HIGH);
-    digitalWrite(kIn2, HIGH);
+    digitalWrite(kIn2, LOW);
   }
   else if(direction == HBridgeMotor::Direction::kBackward) {
-    digitalWrite(kIn1, HIGH);
-    digitalWrite(kIn2, LOW);
+    digitalWrite(kIn1, LOW);
+    digitalWrite(kIn2, HIGH);
   }
   else {
     digitalWrite(kIn1, LOW);

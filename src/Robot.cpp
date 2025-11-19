@@ -2,7 +2,7 @@
 #include "../include/Gpios.h"
 
 
-#define SIMULATOR
+// #define SIMULATOR
 
 
 Robot::Robot():
@@ -84,7 +84,7 @@ void Robot::updateWheelMotors(RemoteControllerData data) {
   HBridgeMotor::Direction directionR{};
   HBridgeMotor::Direction directionL{};
 
-  const bool inputHandled = driveLogic.handleJoystickInput(
+  driveLogic.handleJoystickInput(
     data.axisX, 
     data.axisY, 
     speedR, 
@@ -93,10 +93,8 @@ void Robot::updateWheelMotors(RemoteControllerData data) {
     directionL
   );
 
-  if(inputHandled) {
-    motorsController.updateDirection(directionR, directionL);
-    motorsController.updateSpeed(speedR, speedL);
-  }
+  motorsController.updateDirection(directionR, directionL);
+  motorsController.updateSpeed(speedR, speedL);
 }
 
 
