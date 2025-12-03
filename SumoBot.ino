@@ -20,5 +20,5 @@ void loop() {
 
   // The main loop must have some kind of "yield to lower priority task" event.
   // Otherwise, the watchdog will get triggered.
-  vTaskDelay(1);
+  delay(150);
 }
