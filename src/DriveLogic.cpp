@@ -74,15 +74,15 @@ bool DriveLogic::isInsideDeadzone(int x, int y) const {
 }
 
 
-/**
- * @brief Sets the right and left motor speed for a point turn. Motor speeds are 
- *  equal in magnitude but oppisite in direction.
- */
-void DriveLogic::setPointTurnUnscaled(double steer, double& unscaledR, double& unscaledL) const {
-    ESP_LOGV(kTag.c_str(), "Mode: Point Turn");
-    unscaledR = -steer;
-    unscaledL = steer;
-}
+// /**
+//  * @brief Sets the right and left motor speed for a point turn. Motor speeds are 
+//  *  equal in magnitude but oppisite in direction.
+//  */
+// void DriveLogic::setPointTurnUnscaled(double steer, double& unscaledR, double& unscaledL) const {
+//     ESP_LOGV(kTag.c_str(), "Mode: Point Turn");
+//     unscaledR = -steer;
+//     unscaledL = steer;
+// }
 
 
 /**
@@ -141,9 +141,9 @@ void DriveLogic::calcDifferentialSpeed(int x, int y, double& unscaledR, double& 
     const double throttle           {(-static_cast<double>(y)) / kJoystickMaxVal};
     ESP_LOGV(kTag.c_str(), "Normalized. Throttle: %f | Steer: %f", throttle, steer);
 
-    if (std::abs(throttle) < throttleDeadzone)
-        setPointTurnUnscaled(steer, unscaledR, unscaledL);
-    else if(steer == 0.0)
+    // if (std::abs(throttle) < throttleDeadzone)
+        // setPointTurnUnscaled(steer, unscaledR, unscaledL);
+    if(steer == 0.0)
         setStraightUnscaled(throttle, unscaledR, unscaledL);
     else
         setArcTurnUnscaled(throttle, steer, unscaledR, unscaledL);
