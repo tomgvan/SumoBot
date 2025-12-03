@@ -65,7 +65,7 @@ double BladeController::calculatePositionChange(unsigned int val, unsigned int m
   const double elapsedMicroseconds {static_cast<double>(currentMicroseconds - lastIterationUs)};
   const double normalizedSpeed {(val - minVal) / static_cast<double>(maxVal - minVal)};//0.0 - 1.0
   const double positionChange {elapsedMicroseconds * (kDegreesPerUs * normalizedSpeed)};
-  ESP_LOGW(kTag.c_str(), "elapsed time(us): %f | normalized speed: %f | position change: %f", elapsedMicroseconds, normalizedSpeed, positionChange);
+  ESP_LOGV(kTag.c_str(), "elapsed time(us): %f | normalized speed: %f | position change: %f", elapsedMicroseconds, normalizedSpeed, positionChange);
 
   return positionChange;
 }
@@ -84,7 +84,7 @@ void BladeController::lift(unsigned int val, unsigned int minVal, unsigned int m
     pulseWidthAccumulatorUs = positionChangeUs;
   else
     pulseWidthAccumulatorUs += positionChangeUs;
-  ESP_LOGW(kTag.c_str(), "Lift. pulseWidthAccumulatorUs: %f", pulseWidthAccumulatorUs);
+  ESP_LOGV(kTag.c_str(), "Lift. pulseWidthAccumulatorUs: %f", pulseWidthAccumulatorUs);
 }
 
 
@@ -101,7 +101,7 @@ void BladeController::lower(unsigned int val, unsigned int minVal, unsigned int 
     pulseWidthAccumulatorUs = -positionChangeUs;
   else
     pulseWidthAccumulatorUs -= positionChangeUs;
-  ESP_LOGW(kTag.c_str(), "Lower. pulseWidthAccumulatorUs: %f", pulseWidthAccumulatorUs);
+  ESP_LOGV(kTag.c_str(), "Lower. pulseWidthAccumulatorUs: %f", pulseWidthAccumulatorUs);
 }
 
 
@@ -135,7 +135,7 @@ void BladeController::run() {
 
   const int currentPulseWidthUs {servoMotor.readMicroseconds()};
   const int newPulseWidthUs {applyAccumulatedChange(currentPulseWidthUs)};
-  ESP_LOGW(kTag.c_str(), "Current pulse width(us): %d | New pulse width(us): %d | Pulse width accumulator(us): %f", 
+  ESP_LOGV(kTag.c_str(), "Current pulse width(us): %d | New pulse width(us): %d | Pulse width accumulator(us): %f", 
                                                         currentPulseWidthUs, newPulseWidthUs, pulseWidthAccumulatorUs);
 
   servoMotor.writeMicroseconds(newPulseWidthUs);

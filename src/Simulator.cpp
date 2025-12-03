@@ -46,9 +46,9 @@ struct RemoteControllerData Simulator::getData() {
 
   lastStateUpdateMs = millis();
 
-  ESP_LOGW(kTag.c_str(), "Old state: %d", currentState);
+  ESP_LOGV(kTag.c_str(), "Old state: %d", currentState);
   currentState = simulatorTransition.at(currentState);
-  ESP_LOGW(kTag.c_str(), "New state: %d", currentState);
+  ESP_LOGV(kTag.c_str(), "New state: %d", currentState);
 
   return simulatorData.at(currentState);
 }

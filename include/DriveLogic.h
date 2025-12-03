@@ -7,6 +7,7 @@
 
 class DriveLogic {
 public:
+  //Methods//
   DriveLogic(double joystickMaxVal, unsigned int joystickDeadzone, unsigned int maxMotorSpeed);
   void handleJoystickInput(
     int x, 

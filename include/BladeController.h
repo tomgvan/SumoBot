@@ -7,6 +7,7 @@
 
 class BladeController {
 public:
+  //Methods//
   BladeController(
     unsigned int pin,
     unsigned int minPulseWidthUs,

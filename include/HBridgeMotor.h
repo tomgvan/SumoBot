@@ -6,6 +6,9 @@
 
 class HBridgeMotor {
 public:
+  //Constants//
+  static constexpr unsigned int kMinMotorSpeed {0};
+  static constexpr unsigned int kMaxMotorSpeed {255};
   typedef enum
   {
       kForward = 0,
@@ -13,11 +16,13 @@ public:
       kStop = -1
   } Direction;
 
+  //Methods//
   HBridgeMotor(unsigned int en, unsigned int in1, unsigned int in2);
   ~HBridgeMotor();
   void init();
   void setSpeed(unsigned int speed);
   void setDirection(Direction direction);
+
 
 private:
   //Constants//

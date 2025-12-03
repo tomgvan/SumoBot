@@ -7,6 +7,7 @@
 
 class MotorsController {
 public:
+    //Methods//
     MotorsController(
         unsigned int enR, 
         unsigned int in1R, 
@@ -18,14 +19,10 @@ public:
     void init();
     void updateSpeed(unsigned int speedR, unsigned int speedL);
     void updateDirection(HBridgeMotor::Direction directionR, HBridgeMotor::Direction directionL);
-    unsigned int getMaxSpeed() const;
 
 private:
     //Constants//
     static const std::string kTag;
-    static const unsigned int kDelayMs;
-    static const unsigned int kMinMotorSpeed;
-    static const unsigned int kMaxMotorSpeed;
 
     //Variables//
     HBridgeMotor motorRight;

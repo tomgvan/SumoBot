@@ -3,9 +3,6 @@
 
 // Static Constants Initialization //
 const std::string MotorsController::kTag            {"Motors Controller"};
-const unsigned int MotorsController::kDelayMs       {5};
-const unsigned int MotorsController::kMaxMotorSpeed {255};
-const unsigned int MotorsController::kMinMotorSpeed {0};
 
 
 MotorsController::MotorsController(
@@ -29,14 +26,6 @@ MotorsController::MotorsController(
 void MotorsController::init() {
     motorRight.init();
     motorLeft.init();
-}
-
-
-/**
- * @brief Returns the maximum possible motor speed value.
- */
-unsigned int MotorsController::getMaxSpeed() const {
-    return kMaxMotorSpeed;
 }
 
 

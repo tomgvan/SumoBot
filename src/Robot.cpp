@@ -2,6 +2,8 @@
 #include "../include/Gpios.h"
 
 
+// Static Constants Initialization //
+const std::string Robot::kTag  {"Robot"};
 // #define SIMULATOR
 
 
@@ -18,7 +20,7 @@ Robot::Robot():
   driveLogic(
       remoteController.getJoystickMax(),
       remoteController.getJoystickDeadZone(),
-      motorsController.getMaxSpeed()
+      HBridgeMotor::kMaxMotorSpeed
   ),
   bladeController(
       gpios::kBladeMotorPin,
@@ -39,6 +41,12 @@ void Robot::init() {
   motorsController.init();
   bladeController.init();
   remoteController.init();
+
+  remoteController.registerDisconnectCallback(
+    [this]() {
+      this->onRemoteControllerDisconnect();
+    }
+  );
 }
 
 
@@ -50,7 +58,6 @@ void Robot::init() {
  * pass it to the motors controller that will update their position accordingly.
  */
 void Robot::run() {
-  
 #ifdef SIMULATOR
     RemoteControllerData data {simulator.getData()};
     if(!data.error) {
@@ -121,4 +128,22 @@ void Robot::updateBladeMotor(RemoteControllerData data) {
 void Robot::updateMotors(RemoteControllerData data) {
   updateWheelMotors(data);
   updateBladeMotor(data);
+}
+
+
+/**
+ * @brief On remote controller disconnect stopping the wheel motors.
+ */
+void Robot::onRemoteControllerDisconnect() {
+  ESP_LOGI(kTag.c_str(), "Remote controller disconnected callback");
+
+  motorsController.updateDirection(
+    HBridgeMotor::Direction::kStop, 
+    HBridgeMotor::Direction::kStop
+  );
+
+  motorsController.updateSpeed(
+    HBridgeMotor::kMinMotorSpeed,
+    HBridgeMotor::kMinMotorSpeed
+  );
 }

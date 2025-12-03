@@ -6,27 +6,26 @@
 #include "RemoteController.h"
 
 
-enum class SimulatorState {
-	kIdle = 0,
-	kMoveForward,
-	kMoveBackward,
-	kForwardArcTurnRight,
-	kBackwardArcTurnRight,
-	kForwardArcTurnLeft,
-	kBackwardArcTurnLeft,
-	kPointTurnRight,
-	kPointTurnLeft
-};
-
-
 class Simulator {
 public:
+  //Methods//
   Simulator(unsigned int stateChangeMs);
   struct RemoteControllerData getData();
   void init();
 
 private:
   //Constants//
+  enum class SimulatorState {
+    kIdle = 0,
+    kMoveForward,
+    kMoveBackward,
+    kForwardArcTurnRight,
+    kBackwardArcTurnRight,
+    kForwardArcTurnLeft,
+    kBackwardArcTurnLeft,
+    kPointTurnRight,
+    kPointTurnLeft
+  };
   static const std::string kTag;
   const unsigned int kStateChangeMs;
   

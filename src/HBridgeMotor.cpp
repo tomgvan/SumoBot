@@ -3,7 +3,7 @@
 
 
 // Static Constants Initialization //
-const std::string HBridgeMotor::kTag {"H-Bridge Motor"};
+const std::string HBridgeMotor::kTag                {"H-Bridge Motor"};
 
 
 HBridgeMotor::HBridgeMotor(
@@ -19,7 +19,7 @@ HBridgeMotor::HBridgeMotor(
 
 HBridgeMotor::~HBridgeMotor() {
   setDirection(HBridgeMotor::Direction::kStop);
-  setSpeed(0);
+  setSpeed(HBridgeMotor::kMinMotorSpeed);
 }
 
 
@@ -37,7 +37,7 @@ void HBridgeMotor::init() {
   pinMode(kIn2, OUTPUT);
   
   setDirection(HBridgeMotor::Direction::kStop);
-  setSpeed(0);
+  setSpeed(HBridgeMotor::kMinMotorSpeed);
 }
 
 
