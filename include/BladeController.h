@@ -17,8 +17,8 @@ public:
   );
   ~BladeController();
   void init();
-  void lift(unsigned int val, unsigned int minVal, unsigned int maxVal);
-  void lower(unsigned int val, unsigned int minVal, unsigned int maxVal);
+  void lift();
+  void lower();
   void run();
 
 private:
@@ -36,7 +36,7 @@ private:
   Servo servoMotor;
 
   //Methods//
-  double calculatePositionChange(unsigned int val, unsigned int minVal, unsigned int maxVal) const;
+  double calculatePositionChange() const;
   int applyAccumulatedChange(int currentPulseWidthUs);
 };
 

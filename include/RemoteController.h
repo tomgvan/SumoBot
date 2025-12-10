@@ -13,6 +13,8 @@ struct RemoteControllerData {
   const int axisY;
   const unsigned int rightTrigger;
   const unsigned int leftTrigger;
+  const bool rightButton;
+  const bool leftButton;
 };
 
 
@@ -21,25 +23,27 @@ class RemoteController {
   typedef std::function<void()> ControllerDisconnectCallback;
 
 public:
+  //Constants//
+  static constexpr unsigned int kJoystickDeadzone   {50};
+  static constexpr unsigned int kTriggerDeadzone    {100};
+  static constexpr unsigned int kMaxJoystickVal     {512};
+  static constexpr unsigned int kMaxTriggerVal      {1023};
+  static constexpr unsigned int kMinTriggerVal      {0};
+  static constexpr unsigned int kRightButtonMask    {0x20};
+  static constexpr unsigned int kLeftButtonMask     {0x10};
+
+
   //Methods//
   RemoteController();
   ~RemoteController();
   void init();
   bool run();
   RemoteControllerData getData() const;
-  double getJoystickMax() const;
-  int getJoystickDeadZone() const;
-  unsigned int getTriggerMax() const;
-  unsigned int getTriggerMin() const;
   void registerDisconnectCallback(const ControllerDisconnectCallback& callback);
 
 private:
   //Constants//
   static const std::string kTag;
-  static constexpr unsigned int kJoystickDeadzone   {100};
-  static constexpr double kMaxJoystickVal           {512.0};
-  static constexpr unsigned int kMinTriggerVal      {0};
-  static constexpr unsigned int kMaxTriggerVal      {1023};
 
   //Variables//
   ControllerPtr controller;

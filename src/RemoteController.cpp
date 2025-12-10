@@ -21,7 +21,7 @@ RemoteController::~RemoteController() {
 
 
 /**
- * @brief Initializes the controller manager.
+ * @brief Initializes the remote controller manager.
  * @note This function must be called, typically in setup(), to register
  * connection/disconnection callbacks and enable Bluetooth pairing before any other method is called.
  */
@@ -53,39 +53,6 @@ void RemoteController::init() {
 
 
 /**
- * @brief Gets the maximum absolute value for a joystick axis.
- */
-double RemoteController::getJoystickMax() const {
-  return kMaxJoystickVal;
-}
-
-
-/**
- * @brief Gets the joystick deadzone radius.
- * If the axis magnitude is below this value, it should be treated as 0.
- */
-int RemoteController::getJoystickDeadZone() const {
-  return kJoystickDeadzone;
-}
-
-
-/**
- * @brief Gets the maximum value of the trigger.
- */
-unsigned int RemoteController::getTriggerMax() const {
-  return kMaxTriggerVal;
-}
-
-
-/**
- * @brief Gets the minimum value of the trigger.
- */
-unsigned int RemoteController::getTriggerMin() const {
-  return kMinTriggerVal;
-}
-
-
-/**
  * @brief Updates the controller state.
  * @note This function should be called repeatedly in the main loop.
  * It checks for a connection, polls for new data, and processes gamepad events.
@@ -106,18 +73,20 @@ RemoteControllerData RemoteController::getData() const {
 
   ESP_LOGV(kTag.c_str(), 
     "Returning joystick data. X: %d | Y: %d | Right trigger: %d | Left trigger: %d",
-    controller->axisRX(), 
-    controller->axisRY(),
+    controller->axisX(), 
+    controller->axisY(),
     controller->throttle(),
     controller->brake()
   );
 
   return RemoteControllerData{
     false, 
-    controller->axisRX(), 
-    controller->axisRY(),
+    controller->axisX(), 
+    controller->axisY(),
     static_cast<unsigned int>(controller->throttle()),
-    static_cast<unsigned int>(controller->brake())
+    static_cast<unsigned int>(controller->brake()),
+    controller->buttons() & kRightButtonMask,
+    controller->buttons() & kLeftButtonMask
   };
 }
 
@@ -143,8 +112,6 @@ void RemoteController::onConnectedController(ControllerPtr ctl) {
   if(controller == nullptr) {
     ESP_LOGI(kTag.c_str(), "Callback: Added controller");
     controller = ctl;
-
-    // changeTxPower();
   }
   else {
     ESP_LOGI(kTag.c_str(), "Callback: There is already an active controller connected!");

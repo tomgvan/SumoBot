@@ -4,7 +4,6 @@
 
 // Static Constants Initialization //
 const std::string Robot::kTag  {"Robot"};
-// #define SIMULATOR
 
 
 Robot::Robot():
@@ -18,8 +17,10 @@ Robot::Robot():
       gpios::kMotorLeftIn2
   ),
   driveLogic(
-      remoteController.getJoystickMax(),
-      remoteController.getJoystickDeadZone(),
+      RemoteController::kMaxTriggerVal,
+      RemoteController::kMaxJoystickVal,
+      RemoteController::kTriggerDeadzone,
+      RemoteController::kJoystickDeadzone,
       HBridgeMotor::kMaxMotorSpeed
   ),
   bladeController(
@@ -28,8 +29,7 @@ Robot::Robot():
       2250,
       50,
       60/0.2
-  ),
-  simulator(2000) {
+  ) {
 
 }
 
@@ -58,12 +58,6 @@ void Robot::init() {
  * pass it to the motors controller that will update their position accordingly.
  */
 void Robot::run() {
-#ifdef SIMULATOR
-    RemoteControllerData data {simulator.getData()};
-    if(!data.error) {
-      updateMotors(data);
-    }
-#else
   const bool updated {remoteController.run()};
 
   if(updated) {
@@ -73,7 +67,6 @@ void Robot::run() {
       updateMotors(data);
     }
   }
-#endif
 
   bladeController.run();
 }
@@ -86,44 +79,38 @@ void Robot::run() {
  * directions, and sends the commands to the MotorsController.
  */
 void Robot::updateWheelMotors(RemoteControllerData data) {
-  unsigned int speedR{};
-  unsigned int speedL{};
-  HBridgeMotor::Direction directionR{};
-  HBridgeMotor::Direction directionL{};
+  DriveLogicOut driveLogicOut {
+    0,
+    0,
+    HBridgeMotor::Direction::kStop,
+    HBridgeMotor::Direction::kStop
+  };
 
-  driveLogic.handleJoystickInput(
+  driveLogic.handleRemoteControllerInput(
     data.axisX, 
-    data.axisY, 
-    speedR, 
-    speedL, 
-    directionR, 
-    directionL
+    data.rightTrigger,
+    data.leftTrigger,
+    driveLogicOut
   );
 
-  motorsController.updateDirection(directionR, directionL);
-  motorsController.updateSpeed(speedR, speedL);
+  motorsController.updateDirection(driveLogicOut.directionR, driveLogicOut.directionL);
+  motorsController.updateSpeed(driveLogicOut.speedR, driveLogicOut.speedL);
 }
 
 
 /**
  * @brief Add a lift/lower request for the blade servo motor controller.
  *
- * Uses the right trigger to lift and the left trigger to lower the blade.
- * The trigger with the higher value dictate if a lift(right trigger) or lower(left trigger) is called.
+ * Uses the right button to lift and the left button to lower the blade.
  */
 void Robot::updateBladeMotor(RemoteControllerData data) {
-  if(data.rightTrigger == 0 && data.leftTrigger == 0)
-    return;
-
-  if(data.rightTrigger > data.leftTrigger)
-    bladeController.lift(data.rightTrigger, remoteController.getTriggerMin(), remoteController.getTriggerMax());
-  else
-    bladeController.lower(data.leftTrigger, remoteController.getTriggerMin(), remoteController.getTriggerMax());
+  if(data.rightButton)      bladeController.lift();
+  else if(data.leftButton)  bladeController.lower();
 }
 
 
 /**
- * @brief Updates all motor systems (wheels and blade) from remtoe controller data.
+ * @brief Updates all motors(wheels and blade) from remtoe controller data.
  */
 void Robot::updateMotors(RemoteControllerData data) {
   updateWheelMotors(data);

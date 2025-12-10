@@ -46,13 +46,12 @@ void BladeController::init() {
 /**
  * @brief Calculates position change (in degrees) based on input and time.
  *
- * Normalizes the input `val` to a speed factor [0.0, 1.0] using
- * `minVal` and `maxVal`. It then scales this speed by `kDegreesPerUs`
- * and the elapsed time to get a consistent movement delta.
+ * Determines the distance (in degrees) the blade should have traveled since the last call, based on the
+ * elapsed time and the maximum configured angular speed of the servo (`kDegreesPerUs`). 
+ * This calculated value represents the step size to be applied to the accumulator add for lifting and subtract for lowering 
+ * enabling smooth, continuous motion control. Returns 0.0 if a microcontroller time overflow or excessive time gap is detected.
  */
-double BladeController::calculatePositionChange(unsigned int val, unsigned int minVal, unsigned int maxVal) const {
-  val = constrain(val, minVal, maxVal);
-
+double BladeController::calculatePositionChange() const {
   constexpr unsigned long kMaxDeltaUs {5 * 60 * 1000 * 1000};//5 Minutes
   const unsigned long currentMicroseconds {micros()};
 
@@ -63,9 +62,8 @@ double BladeController::calculatePositionChange(unsigned int val, unsigned int m
     return 0.0;
 
   const double elapsedMicroseconds {static_cast<double>(currentMicroseconds - lastIterationUs)};
-  const double normalizedSpeed {(val - minVal) / static_cast<double>(maxVal - minVal)};//0.0 - 1.0
-  const double positionChange {elapsedMicroseconds * (kDegreesPerUs * normalizedSpeed)};
-  ESP_LOGV(kTag.c_str(), "elapsed time(us): %f | normalized speed: %f | position change: %f", elapsedMicroseconds, normalizedSpeed, positionChange);
+  const double positionChange {elapsedMicroseconds * kDegreesPerUs};
+  ESP_LOGV(kTag.c_str(), "elapsed time(us): %f | position change: %f", elapsedMicroseconds, positionChange);
 
   return positionChange;
 }
@@ -77,8 +75,8 @@ double BladeController::calculatePositionChange(unsigned int val, unsigned int m
  * Calculates the desired position change and adds it to the
  * accumulator, causing the next calls to `run()` to move towards the max limit.
  */
-void BladeController::lift(unsigned int val, unsigned int minVal, unsigned int maxVal) {
-  const double positionChangeUs {calculatePositionChange(val, minVal, maxVal)};
+void BladeController::lift() {
+  const double positionChangeUs {calculatePositionChange()};
 
   if(pulseWidthAccumulatorUs <= 0.0)
     pulseWidthAccumulatorUs = positionChangeUs;
@@ -94,8 +92,8 @@ void BladeController::lift(unsigned int val, unsigned int minVal, unsigned int m
  * Calculates the desired position change and subtracts it from the
  * accumulator, causing the next calls to `run()` to move towards the min limit.
  */
-void BladeController::lower(unsigned int val, unsigned int minVal, unsigned int maxVal) {
-  const double positionChangeUs {calculatePositionChange(val, minVal, maxVal)};
+void BladeController::lower() {
+  const double positionChangeUs {calculatePositionChange()};
 
   if(pulseWidthAccumulatorUs >= 0.0)
     pulseWidthAccumulatorUs = -positionChangeUs;
@@ -135,7 +133,7 @@ void BladeController::run() {
 
   const int currentPulseWidthUs {servoMotor.readMicroseconds()};
   const int newPulseWidthUs {applyAccumulatedChange(currentPulseWidthUs)};
-  ESP_LOGV(kTag.c_str(), "Current pulse width(us): %d | New pulse width(us): %d | Pulse width accumulator(us): %f", 
+  ESP_LOGE(kTag.c_str(), "Current pulse width(us): %d | New pulse width(us): %d | Pulse width accumulator(us): %f", 
                                                         currentPulseWidthUs, newPulseWidthUs, pulseWidthAccumulatorUs);
 
   servoMotor.writeMicroseconds(newPulseWidthUs);

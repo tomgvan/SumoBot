@@ -5,35 +5,45 @@
 #include "HBridgeMotor.h"
 
 
+struct DriveLogicOut {
+    unsigned int speedR;
+    unsigned int speedL;
+    HBridgeMotor::Direction directionR;
+    HBridgeMotor::Direction directionL;
+};
+
+
 class DriveLogic {
 public:
   //Methods//
-  DriveLogic(double joystickMaxVal, unsigned int joystickDeadzone, unsigned int maxMotorSpeed);
-  void handleJoystickInput(
+  DriveLogic(
+    unsigned int triggerMaxVal,
+    unsigned int joystickMaxVal, 
+    unsigned int triggerDeadzone,
+    unsigned int joystickDeadzone, 
+    unsigned int maxMotorSpeed
+    );
+  void handleRemoteControllerInput(
     int x, 
-    int y, 
-    unsigned int& speedR, 
-    unsigned int& speedL, 
-    HBridgeMotor::Direction& directionR, 
-    HBridgeMotor::Direction& directionL
+    unsigned int triggerR,
+    unsigned int triggerL,
+    DriveLogicOut& out
   ) const;
 
 private:
   //Constants//
   static const std::string kTag;
-  const double kJoystickMaxVal;
+  const float kTriggerMaxVal;
+  const float kJoystickMaxVal;
+  const unsigned int kTriggerDeadzone;
   const unsigned int kJoystickDeadzone;
   const unsigned int kMaxMotorSpeed;
 
   //Methods//
-  void joystickToSpeed(int x, int y, int& speedR, int& speedL) const;
   HBridgeMotor::Direction speedToDirection(int speed) const;
-  bool isInsideDeadzone(int x, int y) const;
-  void calcDifferentialSpeed(int x, int y, double& unscaledR, double& unscaledL) const;
-  double calcNormalizationFactor(double unscaledR, double unscaledL) const;
-  void setPointTurnUnscaled(double steer, double& unscaledR, double& unscaledL) const;
-  void setStraightUnscaled(double throttle, double& unscaledR, double& unscaledL) const;
-  void setArcTurnUnscaled(double throttle, double steer, double& unscaledR, double& unscaledL) const;
+  int triggersToOuterWheelSpeed(unsigned int triggerR, unsigned int triggerL) const;
+  int calculateInnerWheelSpeed(int joystickX, int outerWheelSpeed) const;
+  void populateDriveLogicOut(int joystickX, int outerWheelSpeed, int innerWheelSpeed, DriveLogicOut& out) const;
 };
 
 #endif // __DRIVE_LOGIC_H
