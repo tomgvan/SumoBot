@@ -1,5 +1,4 @@
-#ifndef __BLADE_CONTROLLER_H
-#define __BLADE_CONTROLLER_H
+#pragma once
 
 #include <string>
 #include <ESP32Servo.h>
@@ -52,5 +51,3 @@ private:
   double calculatePositionChange() const;
   int applyAccumulatedChange(int currentPulseWidthUs);
 };
-
-#endif // __BLADE_CONTROLLER_H

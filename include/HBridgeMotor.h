@@ -1,5 +1,4 @@
-#ifndef __H_BRIDGE_MOTOR_H
-#define __H_BRIDGE_MOTOR_H
+#pragma once
 
 #include <string>
 
@@ -41,5 +40,3 @@ private:
   const unsigned int kMinMotorSpeed;
   const unsigned int kMaxMotorSpeed;
 };
-
-#endif // __H_BRIDGE_MOTOR_H

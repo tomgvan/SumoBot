@@ -1,5 +1,4 @@
-#ifndef __DRIVE_LOGIC_H
-#define __DRIVE_LOGIC_H
+#pragma once
 
 #include <string>
 #include "HBridgeMotor.h"
@@ -58,5 +57,3 @@ private:
   int calculateInnerWheelSpeed(int joystickX, int outerWheelSpeed) const;
   void populateDriveLogicOut(int joystickX, int outerWheelSpeed, int innerWheelSpeed, DriveLogicOut& out) const;
 };
-
-#endif // __DRIVE_LOGIC_H

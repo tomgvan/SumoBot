@@ -1,5 +1,4 @@
-#ifndef __MOTORS_CONTROLLER_H
-#define __MOTORS_CONTROLLER_H
+#pragma once
 
 #include <string>
 #include "Gpios.h"
@@ -38,7 +37,7 @@ public:
     void updateSpeed(unsigned int speedR, unsigned int speedL);
     void updateDirection(HBridgeMotor::Direction directionR, HBridgeMotor::Direction directionL);
     void stop();
-    
+
 private:
     //Constants//
     static const std::string kTag;
@@ -47,5 +46,3 @@ private:
     HBridgeMotor motorRight;
     HBridgeMotor motorLeft;
 };
-
-#endif // __MOTORS_CONTROLLER_H

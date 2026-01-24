@@ -1,5 +1,4 @@
-#ifndef __GPIOS_H
-#define __GPIOS_H
+#pragma once
 
 namespace gpios {
   static constexpr unsigned int kMotorRightEn  {25};
@@ -12,5 +11,3 @@ namespace gpios {
 
   static constexpr unsigned int kBladeMotorPin {5};
 }
-
-#endif // __GPIOS_H

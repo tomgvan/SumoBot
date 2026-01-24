@@ -1,5 +1,4 @@
-#ifndef __ROBOT_H
-#define __ROBOT_H
+#pragma once
 
 #include <string>
 #include "MotorsController.h"
@@ -31,5 +30,3 @@ private:
   void updateWheelMotors(RemoteControllerData data);
   void onRemoteControllerDisconnect();
 };
-
-#endif // __ROBOT_H

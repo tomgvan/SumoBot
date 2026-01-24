@@ -1,5 +1,4 @@
-#ifndef __REMOTE_CONTROLLER_H
-#define __REMOTE_CONTROLLER_H
+#pragma once
 
 #include <string>
 #include <functional>
@@ -48,5 +47,3 @@ private:
   void changeTxPower(esp_power_level_t pwrLvl);
   int powerLvlToDbm(esp_power_level_t pwrLvl) const;
 };
-
-#endif // __REMOTE_CONTROLLER_H
