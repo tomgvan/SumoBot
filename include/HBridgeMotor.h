@@ -13,12 +13,11 @@ struct HBridgeMotorPins {
 
 class HBridgeMotor {
 public:
-  typedef enum
-  {
-      kForward = 0,
-      kBackward = 1,
-      kStop = -1
-  } Direction;
+  enum class Direction {
+    kForward    = 1,
+    kBackward   = -1,
+    kStop       = 0
+  };
 
   //Methods//
   HBridgeMotor(
