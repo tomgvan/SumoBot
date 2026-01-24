@@ -7,9 +7,8 @@ void setup() {
   Serial.begin(115200);
   while(!Serial);
 
-  ESP_LOGV("Main", "Initializing robot...");
-
   robot.init();
+  
   ESP_LOGV("Main", "Robot Initialized");
 }
 

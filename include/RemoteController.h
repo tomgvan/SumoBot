@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <functional>
 #include <Bluepad32.h>
 #include <esp_bt.h>
@@ -31,7 +30,7 @@ public:
 
 private:
   //Constants//
-  static const std::string kTag;
+  static constexpr const char* kTag {"Remote Controller"};
   static constexpr unsigned int kRightButtonMask    {0x20};
   static constexpr unsigned int kLeftButtonMask     {0x10};
 

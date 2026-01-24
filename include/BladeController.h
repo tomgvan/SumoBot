@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <ESP32Servo.h>
 #include "Gpios.h"
 
@@ -35,7 +34,7 @@ public:
 
 private:
   //Constants//
-  static const std::string kTag;
+  static constexpr const char* kTag {"Blade Controller"};
   const unsigned int kPin;
   const unsigned int kFreq;
   const double kDegreesPerUs;

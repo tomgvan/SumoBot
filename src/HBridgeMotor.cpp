@@ -1,9 +1,9 @@
-#include "esp32-hal-gpio.h"
+#include <esp32-hal-gpio.h>
 #include "../include/HBridgeMotor.h"
 
 
 // Static Constants Initialization //
-const std::string HBridgeMotor::kTag                {"H-Bridge Motor"};
+constexpr const char* HBridgeMotor::kTag;
 
 
 HBridgeMotor::HBridgeMotor(
@@ -34,6 +34,12 @@ HBridgeMotor::~HBridgeMotor() {
  * Sets the EN, IN1, and IN2 pins to OUTPUT mode and the initial motor state to stopped.
  */
 void HBridgeMotor::init() {
+  ESP_LOGI(kTag, "Initializing HBridgeMotor:\n"
+                  "en: %u\n"
+                  "in1: %u\n"
+                  "in2: %u\n", 
+                  kEn, kIn1, kIn2);
+
   pinMode(kEn, OUTPUT);
   pinMode(kIn1, OUTPUT);
   pinMode(kIn2, OUTPUT);
@@ -81,6 +87,6 @@ void HBridgeMotor::setDirection(Direction direction) {
 /**
  * @brief Returns the minimum motor speed(stop speed).
  */
-unsigned int HBridgeMotor::getMinSpeed() {
+unsigned int HBridgeMotor::getMinSpeed() const {
   return kMinMotorSpeed;
 }

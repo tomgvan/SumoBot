@@ -2,7 +2,8 @@
 
 
 // Static Constants Initialization //
-const std::string Robot::kTag  {"Robot"};
+constexpr const char* Robot::kTag;
+
 
 Robot::Robot():
   remoteController(),
@@ -17,6 +18,8 @@ Robot::Robot():
  * @brief Initializes all of the robot's hardware controllers.
  */
 void Robot::init() {
+  ESP_LOGI(kTag, "Initializing Robot.\n");
+
   motorsController.init();
   bladeController.init();
   remoteController.init();
@@ -103,6 +106,6 @@ void Robot::updateMotors(RemoteControllerData data) {
  * Prevents the robot from going out of the arena if the remote controller disconnects.
  */
 void Robot::onRemoteControllerDisconnect() {
-  ESP_LOGI(kTag.c_str(), "Remote controller disconnected callback");
+  ESP_LOGI(kTag, "Remote controller disconnected callback");
   motorsController.stop();
 }

@@ -1,8 +1,9 @@
+#include <Arduino.h>
 #include "../include/MotorsController.h"
 
 
 // Static Constants Initialization //
-const std::string MotorsController::kTag            {"Motors Controller"};
+constexpr const char* MotorsController::kTag;
 constexpr MotorsControllerConfig MotorsController::kDefaultConfig;
 
 
@@ -27,6 +28,8 @@ MotorsController::MotorsController(const MotorsControllerConfig& motorsConfig):
  * before any other motor operations are performed.
  */
 void MotorsController::init() {
+    ESP_LOGI(kTag, "Initializing MotorsController.\n");
+
     motorRight.init();
     motorLeft.init();
 }

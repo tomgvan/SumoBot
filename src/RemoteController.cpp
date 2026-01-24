@@ -3,7 +3,7 @@
 
 
 // Static Constants Initialization //
-const std::string RemoteController::kTag {"Remote Controller"};
+constexpr const char* RemoteController::kTag;
 
 
 RemoteController::RemoteController(): controller(nullptr), disconnectCallback(nullptr) {
@@ -26,9 +26,11 @@ RemoteController::~RemoteController() {
  * connection/disconnection callbacks and enable Bluetooth pairing before any other method is called.
  */
 void RemoteController::init() {
-  ESP_LOGE(kTag.c_str(), "Firmware: %s", BP32.firmwareVersion());
+  ESP_LOGI(kTag, "Initializing RemoteController.\n");
+
+  ESP_LOGV(kTag, "Firmware: %s", BP32.firmwareVersion());
   const uint8_t* addr = BP32.localBdAddress();
-  ESP_LOGE(kTag.c_str(), "BD Addr: %2X:%2X:%2X:%2X:%2X:%2X", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+  ESP_LOGV(kTag, "BD Addr: %2X:%2X:%2X:%2X:%2X:%2X", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
   
   BP32.setup(
     // Lambda function for onConnect
@@ -71,7 +73,7 @@ RemoteControllerData RemoteController::getData() const {
   if(!controller->isGamepad())
     return RemoteControllerData{true, 0, 0, 0, 0};
 
-  ESP_LOGV(kTag.c_str(), 
+  ESP_LOGV(kTag, 
     "Returning joystick data. X: %d | Y: %d | Right trigger: %d | Left trigger: %d",
     controller->axisX(), 
     controller->axisY(),
@@ -95,7 +97,7 @@ RemoteControllerData RemoteController::getData() const {
  * @brief Checks if a specific controller pointer is valid and connected.
  */
 bool RemoteController::isConnected(ControllerPtr ctl) const {
-    return (ctl != nullptr) && (ctl->isConnected());
+  return (ctl != nullptr) && (ctl->isConnected());
 }
 
 
@@ -107,14 +109,14 @@ bool RemoteController::isConnected(ControllerPtr ctl) const {
  * it disconnects from the controller that just connected.
  */
 void RemoteController::onConnectedController(ControllerPtr ctl) {
-  ESP_LOGI(kTag.c_str(), "Callback: Controller connected");
+  ESP_LOGI(kTag, "Callback: Controller connected");
 
   if(controller == nullptr) {
-    ESP_LOGI(kTag.c_str(), "Callback: Added controller");
+    ESP_LOGI(kTag, "Callback: Added controller");
     controller = ctl;
   }
   else {
-    ESP_LOGI(kTag.c_str(), "Callback: There is already an active controller connected!");
+    ESP_LOGI(kTag, "Callback: There is already an active controller connected!");
     if(ctl != nullptr)
       ctl->disconnect();
   }
@@ -129,17 +131,17 @@ void RemoteController::onConnectedController(ControllerPtr ctl) {
  */
 void RemoteController::onDisconnectedController(ControllerPtr ctl) {
   //TODO on disconnect stop all motors
-  ESP_LOGI(kTag.c_str(), "Callback: Controller disconnected");
+  ESP_LOGI(kTag, "Callback: Controller disconnected");
 
   if(controller == ctl) {
-    ESP_LOGV(kTag.c_str(), "Callback: Removed active controller");
+    ESP_LOGV(kTag, "Callback: Removed active controller");
     controller = nullptr;
 
     if(disconnectCallback != nullptr)
       disconnectCallback();
   }
   else {
-    ESP_LOGW(kTag.c_str(), "Callback: No active controller found!");
+    ESP_LOGW(kTag, "Callback: No active controller found!");
   }
 }
 
@@ -148,7 +150,7 @@ void RemoteController::onDisconnectedController(ControllerPtr ctl) {
  * @brief Prints all available data from a controller to the Serial port.
  */
 void RemoteController::dumpGamepad(ControllerPtr ctl) const {
-    ESP_LOGV(kTag.c_str(),
+    ESP_LOGV(kTag,
         "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
         "misc: 0x%02x, gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d",
         ctl->index(),        // Controller Index
@@ -193,20 +195,20 @@ void RemoteController::changeTxPower(esp_power_level_t pwrLvl) {
   //Reading current Bluetooth tx power
   bleTxLvl = esp_ble_tx_power_get(ESP_BLE_PWR_TYPE_DEFAULT);
   if(bleTxLvl < 0) {
-    ESP_LOGW(kTag.c_str(), "BLE - Couldnt read current Tx lvl! %d", bleTxLvl);
+    ESP_LOGW(kTag, "BLE - Couldnt read current Tx lvl! %d", bleTxLvl);
 
   } else {
-    ESP_LOGI(kTag.c_str(), "BLE - Current TX lvl: %d", powerLvlToDbm(bleTxLvl));
+    ESP_LOGI(kTag, "BLE - Current TX lvl: %d", powerLvlToDbm(bleTxLvl));
   }
 
   err = esp_bredr_tx_power_get(&bredrMinTxLvl, &bredrMaxTxLvl);
   if(err != ESP_OK) {
     ESP_LOGW(
-      kTag.c_str(), "BREDR - Couldnt read current Tx lvl! 0x%x", err);
+      kTag, "BREDR - Couldnt read current Tx lvl! 0x%x", err);
   }
   else {
     ESP_LOGI(
-      kTag.c_str(), 
+      kTag, 
       "BREDR - Current Tx lvl. min: %d | max: %d", 
       powerLvlToDbm(bredrMinTxLvl), 
       powerLvlToDbm(bredrMaxTxLvl)
@@ -216,17 +218,17 @@ void RemoteController::changeTxPower(esp_power_level_t pwrLvl) {
   //Changing Bluetooth Low Energy tx power
   err = esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, pwrLvl);
   if(err != ESP_OK) {
-    ESP_LOGW(kTag.c_str(), "BLE - Couldn't change ble tx power lvl! 0x%x", err);
+    ESP_LOGW(kTag, "BLE - Couldn't change ble tx power lvl! 0x%x", err);
   } else{
-    ESP_LOGI(kTag.c_str(), "BLE - Changed Tx power lvl to: %d", powerLvlToDbm(pwrLvl));  
+    ESP_LOGI(kTag, "BLE - Changed Tx power lvl to: %d", powerLvlToDbm(pwrLvl));  
   }
 
   //Changing Bluetooth Classic tx power
   err = esp_bredr_tx_power_set(pwrLvl, pwrLvl);
   if(err != ESP_OK) {
-    ESP_LOGW(kTag.c_str(), "BREDR - Couldn't change bredr tx power lvl! 0x%x", err);
+    ESP_LOGW(kTag, "BREDR - Couldn't change bredr tx power lvl! 0x%x", err);
   } else {
-    ESP_LOGI(kTag.c_str(), "BREDR - Changed Tx power lvl to: %d", powerLvlToDbm(pwrLvl));
+    ESP_LOGI(kTag, "BREDR - Changed Tx power lvl to: %d", powerLvlToDbm(pwrLvl));
   }
 }
 

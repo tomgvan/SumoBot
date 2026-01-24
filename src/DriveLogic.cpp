@@ -6,7 +6,7 @@
 
 
 // Static Constants Initialization //
-const std::string DriveLogic::kTag {"Drive Logic"};
+constexpr const char* DriveLogic::kTag;
 constexpr DriveLogicConfig DriveLogic::kDefaultConfig;
 
 DriveLogic::DriveLogic(const DriveLogicConfig& driveConfig) :
@@ -31,6 +31,7 @@ DriveLogic::DriveLogic(const DriveLogicConfig& driveConfig) :
  */
 int DriveLogic::triggersToOuterWheelSpeed(unsigned int triggerR, unsigned int triggerL) const {
     if(triggerR < kTriggerDeadzone && triggerL < kTriggerDeadzone) {
+        ESP_LOGV(kTag, "Not Driving! Both the right & left triggers are within the deadzone.");
         return 0;
     }
 
@@ -58,6 +59,7 @@ int DriveLogic::triggersToOuterWheelSpeed(unsigned int triggerR, unsigned int tr
 int DriveLogic::calculateInnerWheelSpeed(int joystickX, int outerWheelSpeed) const {
     int steerMagnitude = std::abs(joystickX);
     if(steerMagnitude < kJoystickDeadzone) {
+        ESP_LOGV(kTag, "Not steering! Steer magnitude is within the joystick deadzone.");
         return outerWheelSpeed;
     }
 
@@ -126,6 +128,6 @@ void DriveLogic::handleRemoteControllerInput(
     int innerWheelSpeed = calculateInnerWheelSpeed(joystickX, outerWheelSpeed);
     populateDriveLogicOut(joystickX, outerWheelSpeed, innerWheelSpeed, out);
 
-    ESP_LOGV(kTag.c_str(), "Joystick X: %d | SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d", 
+    ESP_LOGV(kTag, "Joystick X: %d | SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d", 
                                         joystickX, out.speedR, out.speedL, out.directionR, out.directionL);
 }

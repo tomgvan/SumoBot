@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 
 struct HBridgeMotorPins {
   unsigned int en;
@@ -28,12 +26,12 @@ public:
   void init();
   void setSpeed(unsigned int speed);
   void setDirection(Direction direction);
-  unsigned int getMinSpeed();
+  unsigned int getMinSpeed() const;
 
 
 private:
   //Constants//
-  static const std::string kTag;
+  static constexpr const char* kTag {"H-Bridge Motor"};
   const unsigned int kEn;
   const unsigned int kIn1;
   const unsigned int kIn2;

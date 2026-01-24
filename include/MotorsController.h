@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include "Gpios.h"
 #include "HBridgeMotor.h"
 
@@ -40,7 +39,7 @@ public:
 
 private:
     //Constants//
-    static const std::string kTag;
+    static constexpr const char* kTag {"Motors Controller"};
 
     //Variables//
     HBridgeMotor motorRight;

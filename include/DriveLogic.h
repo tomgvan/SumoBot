@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include "HBridgeMotor.h"
 
 
@@ -44,7 +43,7 @@ public:
 
 private:
   //Constants//
-  static const std::string kTag;
+  static constexpr const char* kTag {"Drive Logic"};
   const float kTriggerMaxVal;
   const float kJoystickMaxVal;
   const unsigned int kTriggerDeadzone;

@@ -4,7 +4,7 @@
 
 
 // Static Constants Initialization //
-const std::string BladeController::kTag {"Blade Controller"};
+constexpr const char* BladeController::kTag;
 constexpr BladeControllerConfig BladeController::kDefaultConfig;
 
 
@@ -33,6 +33,14 @@ BladeController::~BladeController() {
  * frequency and pulse width (movement) range.
  */
 void BladeController::init() {
+  ESP_LOGI(kTag, "Initializing BladeController:\n"
+                  "kPin: %u\n"
+                  "kMinPulseWidthUs: %u\n"
+                  "kMaxPulseWidtUs: %u\n"
+                  "kFreq: %u\n"
+                  "kDegreesPerUs: %u\n", 
+                  kPin, kMinPulseWidthUs, kMaxPulseWidthUs, kFreq, kDegreesPerUs);
+
 	ESP32PWM::allocateTimer(0);
 
 	servoMotor.setPeriodHertz(kFreq);
@@ -60,7 +68,7 @@ double BladeController::calculatePositionChange() const {
 
   const double elapsedMicroseconds {static_cast<double>(currentMicroseconds - lastIterationUs)};
   const double positionChange {elapsedMicroseconds * kDegreesPerUs};
-  ESP_LOGV(kTag.c_str(), "elapsed time(us): %f | position change: %f", elapsedMicroseconds, positionChange);
+  ESP_LOGV(kTag, "elapsed time(us): %f | position change: %f", elapsedMicroseconds, positionChange);
 
   return positionChange;
 }
@@ -79,7 +87,8 @@ void BladeController::lift() {
     pulseWidthAccumulatorUs = positionChangeUs;
   else
     pulseWidthAccumulatorUs += positionChangeUs;
-  ESP_LOGV(kTag.c_str(), "Lift. pulseWidthAccumulatorUs: %f", pulseWidthAccumulatorUs);
+
+  ESP_LOGV(kTag, "Updating the pulseWidthAccumulatorUs(lift): %f", pulseWidthAccumulatorUs);
 }
 
 
@@ -96,7 +105,8 @@ void BladeController::lower() {
     pulseWidthAccumulatorUs = -positionChangeUs;
   else
     pulseWidthAccumulatorUs -= positionChangeUs;
-  ESP_LOGV(kTag.c_str(), "Lower. pulseWidthAccumulatorUs: %f", pulseWidthAccumulatorUs);
+
+  ESP_LOGV(kTag, "Updating the pulseWidthAccumulatorUs(lower): %f", pulseWidthAccumulatorUs);
 }
 
 
@@ -130,7 +140,7 @@ void BladeController::run() {
 
   const int currentPulseWidthUs {servoMotor.readMicroseconds()};
   const int newPulseWidthUs {applyAccumulatedChange(currentPulseWidthUs)};
-  ESP_LOGE(kTag.c_str(), "Current pulse width(us): %d | New pulse width(us): %d | Pulse width accumulator(us): %f", 
+  ESP_LOGV(kTag, "Current pulse width(us): %d | New pulse width(us): %d | Pulse width accumulator(us): %f", 
                                                         currentPulseWidthUs, newPulseWidthUs, pulseWidthAccumulatorUs);
 
   servoMotor.writeMicroseconds(newPulseWidthUs);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include "MotorsController.h"
 #include "RemoteController.h"
 #include "DriveLogic.h"
@@ -16,7 +15,7 @@ public:
 
 private:
   //Constants//
-  static const std::string kTag;
+  static constexpr const char* kTag {"Robot"};
 
   //Variables//
   RemoteController remoteController;
