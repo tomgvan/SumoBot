@@ -5,20 +5,17 @@
 
 // Static Constants Initialization //
 const std::string BladeController::kTag {"Blade Controller"};
+constexpr BladeControllerConfig BladeController::kDefaultConfig;
 
 
-BladeController::BladeController(
-    unsigned int pin,
-    unsigned int minPulseWidthUs,
-    unsigned int maxPulseWidthUs,
-    unsigned int freq,
-    unsigned int degreesPerSec):
-      kPin(pin), 
-      kMinPulseWidthUs(minPulseWidthUs),
-      kMaxPulseWidthUs(maxPulseWidthUs),
-      kFreq(freq),
-      kDegreesPerUs(degreesPerSec / 1000.0 / 1000.0),
-      lastIterationUs(micros()) {
+BladeController::BladeController(const BladeControllerConfig& bladeConfig):
+  kPin(bladeConfig.pin), 
+  kMinPulseWidthUs(bladeConfig.minPulseWidthUs),
+  kMaxPulseWidthUs(bladeConfig.maxPulseWidthUs),
+  kFreq(bladeConfig.freq),
+  kDegreesPerUs(bladeConfig.degreesPerSec / 1000.0 / 1000.0),
+  lastIterationUs(micros()),
+  pulseWidthAccumulatorUs(0.0) {
 
 }
 

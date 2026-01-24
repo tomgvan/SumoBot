@@ -3,17 +3,20 @@
 
 // Static Constants Initialization //
 const std::string MotorsController::kTag            {"Motors Controller"};
+constexpr MotorsControllerConfig MotorsController::kDefaultConfig;
 
 
-MotorsController::MotorsController(
-    unsigned int enR, 
-    unsigned int in1R, 
-    unsigned int in2R, 
-    unsigned int enL, 
-    unsigned int in1L, 
-    unsigned int in2L):
-        motorRight(enR, in1R, in2R),
-        motorLeft(enL, in1L, in2L) {
+MotorsController::MotorsController(const MotorsControllerConfig& motorsConfig):
+    motorRight(
+        motorsConfig.rightPins, 
+        motorsConfig.minMotorSpeed, 
+        motorsConfig.maxMotorSpeed
+    ),
+    motorLeft(
+        motorsConfig.leftPins, 
+        motorsConfig.minMotorSpeed, 
+        motorsConfig.maxMotorSpeed
+    ) {
 
 }
 
@@ -45,4 +48,13 @@ void MotorsController::updateDirection(HBridgeMotor::Direction directionR,
                                         HBridgeMotor::Direction directionL) {
     motorRight.setDirection(directionR);
     motorLeft.setDirection(directionL);
+}
+
+
+/**
+ * @brief Stops the driving motors.
+ */
+void MotorsController::stop() {
+    updateDirection(HBridgeMotor::Direction::kStop, HBridgeMotor::Direction::kStop);
+    updateSpeed(motorRight.getMinSpeed(), motorLeft.getMinSpeed());
 }

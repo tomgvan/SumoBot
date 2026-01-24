@@ -1,5 +1,5 @@
-#include "../include/HBridgeMotor.h"
 #include "esp32-hal-gpio.h"
+#include "../include/HBridgeMotor.h"
 
 
 // Static Constants Initialization //
@@ -7,19 +7,21 @@ const std::string HBridgeMotor::kTag                {"H-Bridge Motor"};
 
 
 HBridgeMotor::HBridgeMotor(
-    unsigned int en, 
-    unsigned int in1, 
-    unsigned int in2):
-      kEn(en), 
-      kIn1(in1),
-      kIn2(in2) {
+    const HBridgeMotorPins& pins,
+    unsigned int minMotorSpeed,
+    unsigned int maxMotorSpeed):
+      kEn(pins.en),
+      kIn1(pins.in1),
+      kIn2(pins.in2),
+      kMinMotorSpeed(minMotorSpeed),
+      kMaxMotorSpeed(maxMotorSpeed) {
 
 }
 
 
 HBridgeMotor::~HBridgeMotor() {
-  setDirection(HBridgeMotor::Direction::kStop);
-  setSpeed(HBridgeMotor::kMinMotorSpeed);
+  setDirection(Direction::kStop);
+  setSpeed(kMinMotorSpeed);
 }
 
 
@@ -36,8 +38,8 @@ void HBridgeMotor::init() {
   pinMode(kIn1, OUTPUT);
   pinMode(kIn2, OUTPUT);
   
-  setDirection(HBridgeMotor::Direction::kStop);
-  setSpeed(HBridgeMotor::kMinMotorSpeed);
+  setDirection(Direction::kStop);
+  setSpeed(kMinMotorSpeed);
 }
 
 
@@ -45,7 +47,12 @@ void HBridgeMotor::init() {
  * @brief Sets the speed of the motor using PWM(higher value -> higher speed).
  */
 void HBridgeMotor::setSpeed(unsigned int speed) {
-  //TODO check value boundaries
+  if(speed > kMaxMotorSpeed)
+    speed = kMaxMotorSpeed;
+
+  else if(speed < kMinMotorSpeed)
+    speed = kMinMotorSpeed;
+
   analogWrite(kEn, speed);
 }
 
@@ -55,12 +62,12 @@ void HBridgeMotor::setSpeed(unsigned int speed) {
  *
  * Controls the IN1 and IN2 pins to set the motor to forward, backward, or stop.
  */
-void HBridgeMotor::setDirection(HBridgeMotor::Direction direction) {
-  if(direction == HBridgeMotor::Direction::kForward) {
+void HBridgeMotor::setDirection(Direction direction) {
+  if(direction == Direction::kForward) {
     digitalWrite(kIn1, HIGH);
     digitalWrite(kIn2, LOW);
   }
-  else if(direction == HBridgeMotor::Direction::kBackward) {
+  else if(direction == Direction::kBackward) {
     digitalWrite(kIn1, LOW);
     digitalWrite(kIn2, HIGH);
   }
@@ -68,4 +75,12 @@ void HBridgeMotor::setDirection(HBridgeMotor::Direction direction) {
     digitalWrite(kIn1, LOW);
     digitalWrite(kIn2, LOW);
   }
+}
+
+
+/**
+ * @brief Returns the minimum motor speed(stop speed).
+ */
+unsigned int HBridgeMotor::getMinSpeed() {
+  return kMinMotorSpeed;
 }

@@ -7,19 +7,14 @@
 
 // Static Constants Initialization //
 const std::string DriveLogic::kTag {"Drive Logic"};
+constexpr DriveLogicConfig DriveLogic::kDefaultConfig;
 
-
-DriveLogic::DriveLogic(
-    unsigned int triggerMaxVal,
-    unsigned int joystickMaxVal,
-    unsigned int triggerDeadzone,
-    unsigned int joystickDeadzone, 
-    unsigned int maxMotorSpeed) :
-        kTriggerMaxVal(triggerMaxVal),
-        kJoystickMaxVal(joystickMaxVal),
-        kTriggerDeadzone(triggerDeadzone),
-        kJoystickDeadzone(joystickDeadzone),
-        kMaxMotorSpeed(maxMotorSpeed) {
+DriveLogic::DriveLogic(const DriveLogicConfig& driveConfig) :
+    kTriggerMaxVal(driveConfig.triggerMaxVal),
+    kJoystickMaxVal(driveConfig.joystickMaxVal),
+    kTriggerDeadzone(driveConfig.triggerDeadzone),
+    kJoystickDeadzone(driveConfig.joystickDeadzone),
+    kMaxMotorSpeed(driveConfig.maxMotorSpeed) {
   
 }
 

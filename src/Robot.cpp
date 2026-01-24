@@ -1,35 +1,14 @@
 #include "../include/Robot.h"
-#include "../include/Gpios.h"
 
 
 // Static Constants Initialization //
 const std::string Robot::kTag  {"Robot"};
 
-
 Robot::Robot():
   remoteController(),
-  motorsController(
-      gpios::kMotorRightEn, 
-      gpios::kMotorRightIn1, 
-      gpios::kMotorRightIn2, 
-      gpios::kMotorLeftEn, 
-      gpios::kMotorLeftIn1, 
-      gpios::kMotorLeftIn2
-  ),
-  driveLogic(
-      RemoteController::kMaxTriggerVal,
-      RemoteController::kMaxJoystickVal,
-      RemoteController::kTriggerDeadzone,
-      RemoteController::kJoystickDeadzone,
-      HBridgeMotor::kMaxMotorSpeed
-  ),
-  bladeController(
-      gpios::kBladeMotorPin,
-      750,
-      2250,
-      50,
-      60/0.2
-  ) {
+  motorsController(),
+  driveLogic(),
+  bladeController() {
 
 }
 
@@ -119,18 +98,11 @@ void Robot::updateMotors(RemoteControllerData data) {
 
 
 /**
- * @brief On remote controller disconnect stopping the wheel motors.
+ * @brief Stops the robot movement when remote controller disconnects.
+ *
+ * Prevents the robot from going out of the arena if the remote controller disconnects.
  */
 void Robot::onRemoteControllerDisconnect() {
   ESP_LOGI(kTag.c_str(), "Remote controller disconnected callback");
-
-  motorsController.updateDirection(
-    HBridgeMotor::Direction::kStop, 
-    HBridgeMotor::Direction::kStop
-  );
-
-  motorsController.updateSpeed(
-    HBridgeMotor::kMinMotorSpeed,
-    HBridgeMotor::kMinMotorSpeed
-  );
+  motorsController.stop();
 }

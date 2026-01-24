@@ -6,29 +6,42 @@
 
 
 struct DriveLogicOut {
-    unsigned int speedR;
-    unsigned int speedL;
-    HBridgeMotor::Direction directionR;
-    HBridgeMotor::Direction directionL;
+  unsigned int speedR;
+  unsigned int speedL;
+  HBridgeMotor::Direction directionR;
+  HBridgeMotor::Direction directionL;
+};
+
+struct DriveLogicConfig {
+  unsigned int triggerMaxVal;
+  unsigned int joystickMaxVal;
+  unsigned int triggerDeadzone;
+  unsigned int joystickDeadzone;
+  unsigned int maxMotorSpeed;
 };
 
 
 class DriveLogic {
 public:
+  //Constants//
+  static constexpr DriveLogicConfig kDefaultConfig {
+    .triggerMaxVal    = 1023,
+    .joystickMaxVal   = 512,
+    .triggerDeadzone  = 100,
+    .joystickDeadzone = 50,
+    .maxMotorSpeed    = 255
+  };
+
   //Methods//
-  DriveLogic(
-    unsigned int triggerMaxVal,
-    unsigned int joystickMaxVal, 
-    unsigned int triggerDeadzone,
-    unsigned int joystickDeadzone, 
-    unsigned int maxMotorSpeed
-    );
+  explicit DriveLogic(const DriveLogicConfig& driveConfig = kDefaultConfig);
   void handleRemoteControllerInput(
     int x, 
     unsigned int triggerR,
     unsigned int triggerL,
     DriveLogicOut& out
   ) const;
+
+
 
 private:
   //Constants//

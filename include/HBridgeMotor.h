@@ -4,11 +4,15 @@
 #include <string>
 
 
+struct HBridgeMotorPins {
+  unsigned int en;
+  unsigned int in1;
+  unsigned int in2;
+};
+
+
 class HBridgeMotor {
 public:
-  //Constants//
-  static constexpr unsigned int kMinMotorSpeed {0};
-  static constexpr unsigned int kMaxMotorSpeed {255};
   typedef enum
   {
       kForward = 0,
@@ -17,11 +21,16 @@ public:
   } Direction;
 
   //Methods//
-  HBridgeMotor(unsigned int en, unsigned int in1, unsigned int in2);
+  HBridgeMotor(
+    const HBridgeMotorPins& pins,
+    unsigned int minMotorSpeed,
+    unsigned int maxMotorSpeed
+  );
   ~HBridgeMotor();
   void init();
   void setSpeed(unsigned int speed);
   void setDirection(Direction direction);
+  unsigned int getMinSpeed();
 
 
 private:
@@ -30,6 +39,8 @@ private:
   const unsigned int kEn;
   const unsigned int kIn1;
   const unsigned int kIn2;
+  const unsigned int kMinMotorSpeed;
+  const unsigned int kMaxMotorSpeed;
 };
 
 #endif // __H_BRIDGE_MOTOR_H
