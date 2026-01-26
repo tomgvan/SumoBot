@@ -77,11 +77,11 @@ int DriveLogic::calculateInnerWheelSpeed(int joystickX, int outerWheelSpeed) con
  * 'joystickX' >= 0 -> Turn right
  * 'joystickX' < 0  -> Turn left
  */
-void DriveLogic::populateDriveLogicOut(
+DriveLogicOut DriveLogic::populateDriveLogicOut(
     int joystickX, 
     int outerWheelSpeed, 
-    int innerWheelSpeed, 
-    DriveLogicOut& out) const {
+    int innerWheelSpeed) const {
+    DriveLogicOut out = {};
 
     if(joystickX >= 0) {
         out.directionR = speedToDirection(innerWheelSpeed);
@@ -97,6 +97,8 @@ void DriveLogic::populateDriveLogicOut(
         out.speedR = std::abs(outerWheelSpeed);
         out.speedL = std::abs(innerWheelSpeed);
     }
+
+    return out;
 }
 
 
@@ -118,16 +120,17 @@ void DriveLogic::populateDriveLogicOut(
  * 2. Calculating the necessary inner wheel reduction based on the joystick steering ('joystickX').
  * 3. Mapping these calculated speeds to the final Left & Right motor speed and direction values in 'out'.
  */
-void DriveLogic::handleRemoteControllerInput(
+DriveLogicOut DriveLogic::handleRemoteControllerInput(
     int joystickX,
     unsigned int triggerR,
-    unsigned int triggerL,
-    DriveLogicOut& out) const {
+    unsigned int triggerL) const {
+    DriveLogicOut out = {};
 
     int outerWheelSpeed = triggersToOuterWheelSpeed(triggerR, triggerL);
     int innerWheelSpeed = calculateInnerWheelSpeed(joystickX, outerWheelSpeed);
-    populateDriveLogicOut(joystickX, outerWheelSpeed, innerWheelSpeed, out);
+    out = populateDriveLogicOut(joystickX, outerWheelSpeed, innerWheelSpeed);
 
     ESP_LOGV(kTag, "Joystick X: %d | SpeedR: %u | SpeedL: %u | DirectionR: %d | DirectionL: %d", 
                                         joystickX, out.speedR, out.speedL, out.directionR, out.directionL);
+    return out;
 }

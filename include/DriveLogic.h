@@ -32,11 +32,10 @@ public:
 
   //Methods//
   explicit DriveLogic(const DriveLogicConfig& driveConfig = kDefaultConfig);
-  void handleRemoteControllerInput(
+  DriveLogicOut handleRemoteControllerInput(
     int x, 
     unsigned int triggerR,
-    unsigned int triggerL,
-    DriveLogicOut& out
+    unsigned int triggerL
   ) const;
 
 
@@ -54,5 +53,5 @@ private:
   HBridgeMotor::Direction speedToDirection(int speed) const;
   int triggersToOuterWheelSpeed(unsigned int triggerR, unsigned int triggerL) const;
   int calculateInnerWheelSpeed(int joystickX, int outerWheelSpeed) const;
-  void populateDriveLogicOut(int joystickX, int outerWheelSpeed, int innerWheelSpeed, DriveLogicOut& out) const;
+  DriveLogicOut populateDriveLogicOut(int joystickX, int outerWheelSpeed, int innerWheelSpeed) const;
 };

@@ -6,13 +6,13 @@
 
 
 struct RemoteControllerData {
-  const bool error;
-  const int axisX;
-  const int axisY;
-  const unsigned int rightTrigger;
-  const unsigned int leftTrigger;
-  const bool rightButton;
-  const bool leftButton;
+  bool error;
+  int axisX;
+  int axisY;
+  unsigned int rightTrigger;
+  unsigned int leftTrigger;
+  bool rightButton;
+  bool leftButton;
 };
 
 
@@ -25,7 +25,7 @@ public:
   ~RemoteController();
   void init();
   bool run();
-  RemoteControllerData getData() const;
+  const RemoteControllerData getData() const;
   void registerDisconnectCallback(const ControllerDisconnectCallback& callback);
 
 private:

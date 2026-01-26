@@ -43,7 +43,7 @@ void Robot::run() {
   const bool updated {remoteController.run()};
 
   if(updated) {
-      RemoteControllerData data {remoteController.getData()};
+      const RemoteControllerData data {remoteController.getData()};
 
     if(!data.error) {
       updateMotors(data);
@@ -61,18 +61,10 @@ void Robot::run() {
  * directions, and sends the commands to the MotorsController.
  */
 void Robot::updateWheelMotors(RemoteControllerData data) {
-  DriveLogicOut driveLogicOut {
-    0,
-    0,
-    HBridgeMotor::Direction::kStop,
-    HBridgeMotor::Direction::kStop
-  };
-
-  driveLogic.handleRemoteControllerInput(
+  DriveLogicOut driveLogicOut = driveLogic.handleRemoteControllerInput(
     data.axisX, 
     data.rightTrigger,
-    data.leftTrigger,
-    driveLogicOut
+    data.leftTrigger
   );
 
   motorsController.updateDirection(driveLogicOut.directionR, driveLogicOut.directionL);

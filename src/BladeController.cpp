@@ -57,7 +57,7 @@ void BladeController::init() {
  * enabling smooth, continuous motion control. Returns 0.0 if a microcontroller time overflow or excessive time gap is detected.
  */
 double BladeController::calculatePositionChange() const {
-  constexpr unsigned long kMaxDeltaUs {5 * 60 * 1000 * 1000};//5 Minutes
+  constexpr unsigned long kMaxDeltaUs {5UL * 60UL * 1000UL * 1000UL};//5 Minutes
   const unsigned long currentMicroseconds {micros()};
 
   //Handle overflow

@@ -67,7 +67,7 @@ bool RemoteController::run() {
 /**
  * @brief Returns the latest processed data from the connected controller.
  */
-RemoteControllerData RemoteController::getData() const {
+const RemoteControllerData RemoteController::getData() const {
   if(!isConnected(controller))
     return RemoteControllerData{true, 0, 0, 0, 0};
   if(!controller->isGamepad())
@@ -87,8 +87,8 @@ RemoteControllerData RemoteController::getData() const {
     controller->axisY(),
     static_cast<unsigned int>(controller->throttle()),
     static_cast<unsigned int>(controller->brake()),
-    controller->buttons() & kRightButtonMask,
-    controller->buttons() & kLeftButtonMask
+    (controller->buttons() & kRightButtonMask) != 0,
+    (controller->buttons() & kLeftButtonMask)  != 0
   };
 }
 
@@ -237,13 +237,10 @@ void RemoteController::changeTxPower(esp_power_level_t pwrLvl) {
  * @brief Converts the BT stack power level enum values to dbm.
  */
 int RemoteController::powerLvlToDbm(esp_power_level_t pwrLvl) const {
-  if(pwrLvl == ESP_PWR_LVL_N12) return -12;
-  if(pwrLvl == ESP_PWR_LVL_N9)  return -9;
-  if(pwrLvl == ESP_PWR_LVL_N6)  return -6;
-  if(pwrLvl == ESP_PWR_LVL_N3)  return -3;
-  if(pwrLvl == ESP_PWR_LVL_N0)  return 0;
-  if(pwrLvl == ESP_PWR_LVL_P3)  return 3;
-  if(pwrLvl == ESP_PWR_LVL_P6)  return 6;
-  if(pwrLvl == ESP_PWR_LVL_P9)  return 9;
+  static constexpr int dbmTable[] = {-12, -9, -6, -3, 0, 3, 6, 9};
+  if(pwrLvl >= 0 && pwrLvl < sizeof(dbmTable)) {
+    return dbmTable[pwrLvl];
+  }
+
   return -100;
 }
